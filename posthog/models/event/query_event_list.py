@@ -34,7 +34,14 @@ def parse_request_params(
     result = ""
     params: Dict[str, Union[str, List[str]]] = {}
     for k, v in conditions.items():
-        if not isinstance(v, str):
+        # LLM this extra condition allows fetching a list of events by distinct id
+        # harcoded 1000 to avoid a query that is too large
+        # but this is expected to only run for 100 persons
+        if k == "distinct_ids":
+            if len(v) < 1000:
+                result += """AND distinct_id IN (%(distinct_ids)s) """
+                params.update({"distinct_ids": list(map(str, v))})
+        elif not isinstance(v, str):
             continue
         if k == "after":
             result += "AND timestamp > %(after)s "
@@ -49,9 +56,11 @@ def parse_request_params(
         elif k == "distinct_id":
             result += "AND distinct_id = %(distinct_id)s "
             params.update({"distinct_id": v})
+        # LLM allow filterting by event in the query
         elif k == "event":
             result += "AND event = %(event)s "
             params.update({"event": v})
+
     return result, params
 
 

@@ -327,3 +327,55 @@ def raise_if_user_provided_url_unsafe(url: str):
     for _, _, _, _, sockaddr in addrinfo:
         if ip_address(sockaddr[0]).is_private:  # Prevent addressing internal services
             raise ValueError("Internal hostname")
+
+
+def set_people_events(s_people, s_events):
+    people_map = {}
+    for pp in s_people:
+        for distinct_id in pp["distinct_ids"]:
+            people_map[distinct_id] = pp["id"]
+
+    # group events by person id
+    grouped_events = {}
+    for ev in s_events:
+        # Only for LLM event types (currently defined by events starting with llm-)
+        if ev["event"].startswith("llm-"):
+            person_id = people_map.get(ev["distinct_id"])
+            # currently only include event properties starting with $llm or $session_id
+            props = {
+                k: v
+                for k, v in ev["properties"].items()
+                if k.startswith("$llm") or k in ["$session_id", "input", "output"]
+            }
+            props["timestamp"] = ev["timestamp"]
+            grouped_events.setdefault(person_id, []).append(props)
+
+    # set the person event list in a property
+    for pp in s_people:
+        events = grouped_events.get(pp["id"], [])
+        events = _sort_people_events(events)
+        if len(events) > 0:
+            pp["properties"]["$llm-events"] = events
+    return s_people
+
+
+def _sort_people_events(events):
+    """sort events based on timestamp and session"""
+    # get earliest timestamp for each session_id
+    unique_sessions = set(ev.get("$session_id", "") for ev in events)
+    first_ts = []
+    for session_id in unique_sessions:
+        # earliest timestamp for events with given session_id
+        ts = min(ev["timestamp"] for ev in events if ev.get("$session_id", "") == session_id)
+        first_ts.append((ts, session_id))
+    first_ts.sort()
+    # position order for the session ids display
+    session_pos_map = {session_id: idx for idx, (_, session_id) in enumerate(first_ts)}
+    # sort the events based first on session position, second on timestamp and last on previous order
+    sorted_events = sorted(
+        [
+            (session_pos_map[ev.get("$session_id", "")], ev["timestamp"], prev_order, ev)
+            for prev_order, ev in enumerate(events)
+        ]
+    )
+    return [ev for _, _, _, ev in sorted_events]

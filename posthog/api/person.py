@@ -775,6 +775,44 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
         entity = get_target_entity(filter)
 
         actors, serialized_actors, raw_count = TrendsActors(self.team, entity, filter).get_actors()
+
+        # LLM extension of actors with LLM events
+        from posthog.models.event.query_event_list import query_events_list
+        from posthog.models.event.util import ClickhouseEventSerializer
+        from posthog.api.utils import set_people_events
+
+        order_by: List[str] = list(json.loads(request.GET["orderBy"])) if request.GET.get("orderBy") else ["-timestamp"]
+
+        req_dict = request.GET.dict().copy()
+
+        req_events = json.loads(req_dict.get("events", []))
+        if any(ev["name"].startswith("llm") for ev in req_events):
+            distinct_ids = [di for sa in serialized_actors for di in sa["distinct_ids"]]
+            # LLM FIXME currently only using the first event for filtering
+            ev = json.loads(req_dict["events"])[0].get("name")
+            req_dict["event"] = ev
+            if "date_from" in req_dict:
+                req_dict["after"] = req_dict["date_from"]
+            if "date_to" in req_dict:
+                req_dict["before"] = req_dict["date_to"]
+            req_dict["distinct_ids"] = distinct_ids
+
+            query_result = query_events_list(
+                filter=filter,
+                team=self.team,
+                limit=10000,
+                # offset=offset,
+                request_get_query_dict=req_dict,
+                order_by=order_by,
+                action_id=request.GET.get("action_id"),
+            )
+            llm_ev_result = ClickhouseEventSerializer(
+                query_result[0:10000],
+                many=True,
+                # context={"people": self._get_people(query_result, self.team)},
+            ).data
+            serialized_actors = set_people_events(serialized_actors, llm_ev_result)
+
         next_url = paginated_result(request, raw_count, filter.offset, filter.limit)
         initial_url = format_query_params_absolute_url(request, 0)
 
