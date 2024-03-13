@@ -711,3 +711,21 @@ body {
 .ligatures-none {
     font-variant-ligatures: none;
 }
+
+// dialog colors
+
+.user-avatar-div {
+    background-color: red;
+    border-radius: 30%;
+}
+
+.agent-avatar-div {
+    background-color: #ff5733;
+    border-radius: 30%;
+}
+
+.avatar-style {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    color: white;
+}
