@@ -15,6 +15,12 @@
   <a href="https://posthog.com/docs">Docs</a> - <a href="https://posthog.com/community">Community</a> - <a href="https://posthog.com/roadmap">Roadmap</a> - <a href="https://posthog.com/changelog">Changelog</a> - <a href="https://github.com/PostHog/posthog/issues/new?assignees=&labels=bug&template=bug_report.md">Bug reports</a> 
 </p>
 
+## PostHog-LLM
+
+PostHog-LLM is a fork of [PostHog](https://github.com/PostHog/posthog) with extensions 
+to use PostHog as a LLM text analytics platform and be able to display the LLM 
+interactions while exploring insights.
+
 ## PostHog is an all-in-one, open source platform for building better products
 
 - Specify events manually, or use autocapture to get started quickly
