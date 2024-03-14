@@ -706,7 +706,9 @@ export function TaskRow({ role, avatarClass, utterance, isTask, addPaddingBot }:
     return (
         <div className={`w-full ${addPaddingBot && isTask ? 'pb-4' : 'pb-0'}`}>
             <div
-                className={`rounded-lg ${isTask && role === 'user' ? 'border-b' : ''} ${!isTask ? 'px-4 pt-4' : 'p-4'}`}
+                className={`rounded-lg ${isTask && role === 'user' ? 'border-b' : ''} ${
+                    !isTask ? (role === 'user' ? 'px-4 pt-4' : role === 'agent' ? 'px-4' : '') : 'p-4'
+                }`}
             >
                 <div className="rounded-lg p-2 mb-2">
                     <div className="flex flex-row">
