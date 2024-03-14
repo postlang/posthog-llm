@@ -541,7 +541,7 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                             },
                             {
                                 key: 'dialogs',
-                                label: 'Dialogs',
+                                label: 'LLM Events',
                                 content: (
                                     <div>
                                         <div className="p-2 space-y-2 font-medium mt-1">
