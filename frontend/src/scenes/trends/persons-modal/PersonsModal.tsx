@@ -299,9 +299,12 @@ export function PersonsModal({
 }
 
 function getSessionId(event: Record<string, any>, userId: string, index: number): string {
+    // cast to string anyways
     if (
         event['$session_id'] &&
-        (typeof event['$session_id'] === 'string' || typeof event['$session_id'] === 'number')
+        (typeof event['$session_id'] === 'string' ||
+            typeof event['$session_id'] === 'string' ||
+            typeof event['$session_id'] === 'number')
     ) {
         return 'Session ' + event['$session_id']
     } else {
