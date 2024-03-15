@@ -298,8 +298,15 @@ export function PersonsModal({
     )
 }
 
-function getSessionId(event: Record<string, string>): string {
-    return event['$session_id'] ? event['$session_id'] : ``
+function getSessionId(event: Record<string, any>, userId: string, index: number): string {
+    if (
+        event['$session_id'] &&
+        (typeof event['$session_id'] === 'string' || typeof event['$session_id'] === 'number')
+    ) {
+        return 'Session ' + event['$session_id']
+    } else {
+        return `missing_session_${userId}-${index}`
+    }
 }
 
 function processArrayInput(event: [], timestamp: any, output: string): ProcessedMessage {
@@ -377,12 +384,12 @@ function addTaskToDialogues(
     dialogues[sessionId].push(task)
 }
 
-function preProcessEvents(llmEvents: []): Record<string, unknown> {
+function preProcessEvents(llmEvents: [], userId: string): Record<string, unknown> {
     /* Preprocess the events to segment them by session ID */
     const segmentedDialogues = {}
 
-    llmEvents.forEach((event: Record<string, string>) => {
-        const sessionId = getSessionId(event)
+    llmEvents.forEach((event: Record<string, unknown>, index: number) => {
+        const sessionId = getSessionId(event, userId, index) // Fix: Wrap the event object in an array
         addTaskToDialogues(segmentedDialogues, sessionId, event, llmEvents)
     })
 
@@ -553,7 +560,9 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                                             {Object.entries(segmentedConvs).map(([sessionId, conversation], index) => (
                                                 <ConvRow
                                                     key={index}
-                                                    convId={`Session - ${sessionId}`}
+                                                    convId={
+                                                        sessionId.includes('missing_session') ? 'Session' : sessionId
+                                                    }
                                                     conversation={
                                                         conversation as {
                                                             input: string
