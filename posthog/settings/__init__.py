@@ -76,6 +76,12 @@ PLUGINS_PREINSTALLED_URLS: List[str] = (
     if not DISABLE_MMDB
     else []
 )
+PLUGINS_PREINSTALLED_URLS = PLUGINS_PREINSTALLED_URLS + [
+    "https://github.com/minuva/ph-emotion-plugin",
+    "https://github.com/minuva/ph-toxicity-plugin",
+    "https://github.com/minuva/ph-flowdetect-plugin",
+]
+
 PLUGINS_RELOAD_PUBSUB_CHANNEL = os.getenv("PLUGINS_RELOAD_PUBSUB_CHANNEL", "reload-plugins")
 
 # Tokens used when installing plugins, for example to get the latest commit SHA or to download private repositories.
