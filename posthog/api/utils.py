@@ -345,7 +345,10 @@ def set_people_events(s_people, s_events):
             props = {
                 k: v
                 for k, v in ev["properties"].items()
-                if k.startswith("$llm") or k in ["$session_id", "input", "output"]
+                if k.startswith("$llm")
+                or k.startswith("user_")
+                or k.startswith("agent_")
+                or k in ["$session_id", "input", "output"]
             }
             props["timestamp"] = ev["timestamp"]
             grouped_events.setdefault(person_id, []).append(props)
