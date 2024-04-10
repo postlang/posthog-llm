@@ -554,6 +554,22 @@ class _Printer(Visitor):
             op = f"globalIn({left}, {right})"
         elif node.op == ast.CompareOperationOp.GlobalNotIn:
             op = f"globalNotIn({left}, {right})"
+        elif node.op in (ast.CompareOperationOp.InCohort, ast.CompareOperationOp.NotInCohort):
+            from posthog.models.cohort import Cohort
+
+            cohort = Cohort.objects.get(pk=right)
+            if cohort.is_static:
+                cohort_table_name = "person_static_cohort"
+            else:
+                cohort_table_name = "cohortpeople"
+
+            operation = "NOT IN" if node.op == ast.CompareOperationOp.NotInCohort else "IN"
+
+            if cohort.is_static:
+                op = f"{left} {operation} (SELECT person_id FROM {cohort_table_name} WHERE cohort_id = {right})"
+            else:
+                op = f"{left} {operation} (SELECT person_id FROM {cohort_table_name} WHERE cohort_id = {right} GROUP BY person_id, cohort_id, version HAVING sum(sign) > 0)"
+
         elif node.op == ast.CompareOperationOp.Regex:
             op = f"match({left}, {right})"
             value_if_both_sides_are_null = True
