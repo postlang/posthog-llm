@@ -222,7 +222,7 @@ export function FilterBasedCardContent({
                 ) : apiErrored && !loading ? (
                     <InsightErrorState excludeDetail />
                 ) : (
-                    !apiErrored && <VizComponent inCardView={true} showPersonsModal={false} context={context} />
+                    !apiErrored && <VizComponent inCardView={true} showPersonsModal={true} context={context} />
                 )}
             </div>
         </BindLogic>
