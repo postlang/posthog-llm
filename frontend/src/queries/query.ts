@@ -156,14 +156,8 @@ export async function query<N extends DataNode = DataNode>(
     const hogQLInsightsRetentionFlagEnabled = Boolean(
         featureFlagLogic.findMounted()?.values.featureFlags?.[FEATURE_FLAGS.HOGQL_INSIGHTS_RETENTION]
     )
-    const hogQLInsightsTrendsFlagEnabled = Boolean(
-        featureFlagLogic.findMounted()?.values.featureFlags?.[FEATURE_FLAGS.HOGQL_INSIGHTS_TRENDS]
-    )
     const hogQLInsightsStickinessFlagEnabled = Boolean(
         featureFlagLogic.findMounted()?.values.featureFlags?.[FEATURE_FLAGS.HOGQL_INSIGHTS_STICKINESS]
-    )
-    const hogQLInsightsFunnelsFlagEnabled = Boolean(
-        featureFlagLogic.findMounted()?.values.featureFlags?.[FEATURE_FLAGS.HOGQL_INSIGHTS_FUNNELS]
     )
     const hogQLInsightsLiveCompareEnabled = Boolean(
         featureFlagLogic.findMounted()?.values.featureFlags?.[FEATURE_FLAGS.HOGQL_INSIGHT_LIVE_COMPARE]
@@ -215,9 +209,9 @@ export async function query<N extends DataNode = DataNode>(
                 (hogQLInsightsPathsFlagEnabled &&
                     (isPathsQuery(queryNode) || (isActorsQuery(queryNode) && !!legacyUrl))) ||
                 (hogQLInsightsRetentionFlagEnabled && isRetentionQuery(queryNode)) ||
-                (hogQLInsightsTrendsFlagEnabled && isTrendsQuery(queryNode)) ||
+                isTrendsQuery(queryNode) ||
                 (hogQLInsightsStickinessFlagEnabled && isStickinessQuery(queryNode)) ||
-                (hogQLInsightsFunnelsFlagEnabled && isFunnelsQuery(queryNode))
+                isFunnelsQuery(queryNode)
             ) {
                 if (hogQLInsightsLiveCompareEnabled) {
                     const legacyFunction = legacyUrl ? fetchLegacyUrl : fetchLegacyInsights
