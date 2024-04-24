@@ -727,6 +727,7 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
                 request_get_query_dict=req_dict,
                 order_by=order_by,
                 action_id=request.GET.get("action_id"),
+                unbounded_date_from=True,
             )
             llm_ev_result = ClickhouseEventSerializer(
                 query_result[0:10000],
@@ -801,7 +802,6 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
 
         return self._respond_with_cached_results(self.calculate_trends_persons(request))
 
-    @cached_by_filters
     def calculate_trends_persons(
         self, request: request.Request
     ) -> Dict[str, Tuple[List, Optional[str], Optional[str], int]]:
