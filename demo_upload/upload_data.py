@@ -2,7 +2,6 @@
 Example upload of a dataset to posthog-llm.
 """
 import os
-from pathlib import Path
 import json
 import posthog
 from datetime import datetime
@@ -29,7 +28,7 @@ def task(distinct_id, input, output, event="llm-task", timestamp=None, session_i
         )
 
 
-with open(Path(__file__).parent / "demo_data_clean.json") as f:
+with open("demo_data_clean.json") as f:
     data = json.load(f)
 
 counter = 0
