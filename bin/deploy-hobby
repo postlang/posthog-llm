@@ -197,6 +197,7 @@ cp posthog-llm/docker-compose.hobby.yml docker-compose.yml.tmpl
 envsubst < docker-compose.yml.tmpl > docker-compose.yml
 rm docker-compose.yml.tmpl
 echo "Starting the stack!" 
+sed -i 's/build: \./build: \.\/posthog-llm\//g' "docker-compose.yml"
 sudo -E docker-compose -f docker-compose.yml up -d
 
 echo "We will need to wait ~5-10 minutes for things to settle down, migrations to finish, and TLS certs to be issued"
