@@ -103,8 +103,6 @@ then
 export REGISTRY_URL="posthog/posthog"
 fi
 
-export HOBBY_FOLDER="./posthog-llm/"
-
 # rewrite caddyfile
 rm -f Caddyfile
 envsubst > Caddyfile <<EOF
