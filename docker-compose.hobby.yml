@@ -35,10 +35,10 @@ services:
             - kafka
             - zookeeper
         volumes:
-            - ./posthog/posthog/idl:/idl
-            - ./posthog/docker/clickhouse/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-            - ./posthog/docker/clickhouse/config.xml:/etc/clickhouse-server/config.xml
-            - ./posthog/docker/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+            - ./posthog-llm/posthog/idl:/idl
+            - ./posthog-llm/docker/clickhouse/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+            - ./posthog-llm/docker/clickhouse/config.xml:/etc/clickhouse-server/config.xml
+            - ./posthog-llm/docker/clickhouse/users.xml:/etc/clickhouse-server/users.xml
             - clickhouse-data:/var/lib/clickhouse
     zookeeper:
         extends:
@@ -139,7 +139,7 @@ services:
         ports:
             - 7233:7233
         volumes:
-            - ./posthog/docker/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
+            - ./posthog-llm/docker/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
     temporal-admin-tools:
         extends:
             file: docker-compose.base.yml

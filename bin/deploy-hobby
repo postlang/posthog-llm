@@ -68,7 +68,7 @@ echo "Installing PostHog 🦔 from Github"
 sudo apt install -y git
 # try to clone - if folder is already there pull latest for that branch
 git clone https://github.com/postlang/posthog-llm.git &> /dev/null || true
-cd posthog
+cd posthog-llm
 
 if [[ "$POSTHOG_APP_TAG" = "latest-release" ]]
 then
@@ -192,8 +192,8 @@ sudo usermod -aG docker "${USER}" || true
 # start up the stack
 echo "Configuring Docker Compose...."
 rm -f docker-compose.yml
-cp posthog/docker-compose.base.yml docker-compose.base.yml
-cp posthog/docker-compose.hobby.yml docker-compose.yml.tmpl
+cp posthog-llm/docker-compose.base.yml docker-compose.base.yml
+cp posthog-llm/docker-compose.hobby.yml docker-compose.yml.tmpl
 envsubst < docker-compose.yml.tmpl > docker-compose.yml
 rm docker-compose.yml.tmpl
 echo "Starting the stack!" 
