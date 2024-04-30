@@ -10,7 +10,7 @@ import { insightLogic } from 'scenes/insights/insightLogic'
 import { cohortsModel } from '~/models/cohortsModel'
 import { propertyDefinitionsModel } from '~/models/propertyDefinitionsModel'
 import { NodeKind } from '~/queries/schema'
-import { isInsightVizNode, isLifecycleQuery, isStickinessQuery, isTrendsQuery } from '~/queries/utils'
+import { isInsightVizNode, isLifecycleQuery, isStickinessQuery } from '~/queries/utils'
 import { ChartDisplayType, ChartParams, GraphType } from '~/types'
 
 import { InsightEmptyState } from '../../insights/EmptyStates'
@@ -43,7 +43,6 @@ export function ActionsLineGraph({
         trendsFilter,
         isLifecycle,
         isStickiness,
-        isTrends,
         isDataWarehouseSeries,
     } = useValues(trendsDataLogic(insightProps))
 
@@ -67,14 +66,6 @@ export function ActionsLineGraph({
         query &&
         isInsightVizNode(query) &&
         isStickinessQuery(query.source)
-
-    const isTrendsQueryWithFeatureFlagOn =
-        featureFlags[FEATURE_FLAGS.HOGQL_INSIGHTS_TRENDS] &&
-        isTrends &&
-        query &&
-        isInsightVizNode(query) &&
-        isTrendsQuery(query.source)
-
     return indexedResults &&
         indexedResults[0]?.data &&
         indexedResults.filter((result) => result.count !== 0).length > 0 ? (
@@ -135,12 +126,7 @@ export function ActionsLineGraph({
                                   </>
                               )
                           )
-
-                          if (
-                              isLifecycleQueryWithFeatureFlagOn ||
-                              isStickinessQueryWithFeatureFlagOn ||
-                              isTrendsQueryWithFeatureFlagOn
-                          ) {
+                          if (isLifecycleQueryWithFeatureFlagOn || isStickinessQueryWithFeatureFlagOn) {
                               openPersonsModal({
                                   title,
                                   query: {
