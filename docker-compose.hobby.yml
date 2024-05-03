@@ -63,7 +63,8 @@ services:
             SENTRY_DSN: $SENTRY_DSN
             SITE_URL: https://$DOMAIN
             SECRET_KEY: $POSTHOG_SECRET
-        build: .
+        build: $BUILD_DIRECTORY
+
     web:
         extends:
             file: docker-compose.base.yml
@@ -71,7 +72,7 @@ services:
         command: /compose/start
         volumes:
             - ./compose:/compose
-        build: .
+        build: $BUILD_DIRECTORY
         environment:
             SENTRY_DSN: $SENTRY_DSN
             SITE_URL: https://$DOMAIN
@@ -88,7 +89,7 @@ services:
         extends:
             file: docker-compose.base.yml
             service: plugins
-        build: .
+        build: $BUILD_DIRECTORY
         environment:
             SENTRY_DSN: $SENTRY_DSN
             SITE_URL: https://$DOMAIN

@@ -12,6 +12,9 @@ export SENTRY_DSN="${SENTRY_DSN:-'https://public@sentry.example.com/1'}"
 POSTHOG_SECRET=$(head -c 28 /dev/urandom | sha224sum -b | head -c 56)
 export POSTHOG_SECRET
 
+BUILD_DIRECTORY="./posthog-llm"
+export BUILD_DIRECTORY
+
 # Talk to the user
 echo "Welcome to the single instance PostHog installer 🦔"
 echo ""
@@ -196,7 +199,9 @@ cp posthog-llm/docker-compose.base.yml docker-compose.base.yml
 cp posthog-llm/docker-compose.hobby.yml docker-compose.yml.tmpl
 envsubst < docker-compose.yml.tmpl > docker-compose.yml
 rm docker-compose.yml.tmpl
-echo "Starting the stack!" 
+echo "Starting the stack!"
+
+export BUILD_DIRECTORY="./posthog-llm"
 sudo -E docker-compose -f docker-compose.yml up -d
 
 echo "We will need to wait ~5-10 minutes for things to settle down, migrations to finish, and TLS certs to be issued"
