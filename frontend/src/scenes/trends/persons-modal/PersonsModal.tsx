@@ -334,6 +334,7 @@ type ProcessedMessage = {
     output: string
     timestamp: string
     history?: ProcessedMessage[]
+    metadata?: Record<string, any>
 }
 
 function processStringInput(event: Record<string, any>, allEvents: []): ProcessedMessage {
@@ -342,6 +343,15 @@ function processStringInput(event: Record<string, any>, allEvents: []): Processe
         timestamp: event['timestamp'],
         output: event['$llm_output'],
     }
+
+    // add metadata to the message
+    const metadata = {}
+    Object.keys(event).forEach((key) => {
+        if (key.startsWith('user_') || key.startsWith('agent_')) {
+            metadata[key] = event[key]
+        }
+    })
+    msg['metadata'] = metadata
 
     // find the history of the current event
     const history = allEvents.filter(
@@ -560,6 +570,7 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                                                             output: string
                                                             timestamp: string
                                                             history: []
+                                                            metadata: Record<string, any>
                                                         }[]
                                                     }
                                                     expand={Object.keys(segmentedConvs).length === 1}
@@ -591,7 +602,7 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
 
 interface ConvRowProps {
     convId: string
-    conversation: { input: string; output: string; timestamp: string; history: [] }[]
+    conversation: { input: string; output: string; timestamp: string; history: []; metadata: Record<string, any> }[]
     expand: boolean
     setBorder?: boolean
 }
@@ -641,6 +652,7 @@ export function ConvRow({ convId, conversation, expand, setBorder }: ConvRowProp
                                 timestamp={task.timestamp}
                                 history={task.history}
                                 isTask={true}
+                                metadata={task.metadata}
                             />
                         </div>
                     ))}
@@ -657,11 +669,25 @@ interface TaskProps {
     history?: ProcessedMessage[]
     expandHistory?: boolean
     isTask?: boolean
+    metadata?: Record<string, any>
 }
 
-export function Task({ input, output, timestamp, history, expandHistory, isTask }: TaskProps): JSX.Element {
+export function Task({ input, output, timestamp, history, expandHistory, isTask, metadata }: TaskProps): JSX.Element {
     const user_class = 'user-avatar-div'
     const agent_class = 'agent-avatar-div'
+    const user_metadata = {}
+    const agent_metadata = {}
+
+    if (metadata) {
+        Object.keys(metadata).forEach((key) => {
+            if (key.startsWith('user_')) {
+                user_metadata[key] = metadata[key]
+            } else if (key.startsWith('agent_')) {
+                agent_metadata[key] = metadata[key]
+            }
+        })
+    }
+
     const [expanded, setExpanded] = useState<boolean>(expandHistory || false)
 
     const toggleHistory = (): void => {
@@ -688,8 +714,21 @@ export function Task({ input, output, timestamp, history, expandHistory, isTask 
                     ))}
             </div>
             <div className={`pt ${isTask ? 'border-t' : ''}`}>
-                <TaskRow role="user" avatarClass={user_class} utterance={input} isTask={isTask} addPaddingBot={true} />
-                <TaskRow role="agent" avatarClass={agent_class} utterance={output} isTask={isTask} />
+                <TaskRow
+                    role="user"
+                    avatarClass={user_class}
+                    utterance={input}
+                    isTask={isTask}
+                    metadata={user_metadata}
+                    addPaddingBot={true}
+                />
+                <TaskRow
+                    role="agent"
+                    avatarClass={agent_class}
+                    utterance={output}
+                    metadata={agent_metadata}
+                    isTask={isTask}
+                />
             </div>
         </div>
     )
@@ -700,9 +739,19 @@ interface TaskRowProps {
     avatarClass: string
     utterance: string
     isTask?: boolean // is the row a task or a history message
+    metadata?: Record<string, any>
     addPaddingBot?: boolean
 }
-export function TaskRow({ role, avatarClass, utterance, isTask, addPaddingBot }: TaskRowProps): JSX.Element {
+export function TaskRow({ role, avatarClass, utterance, isTask, metadata, addPaddingBot }: TaskRowProps): JSX.Element {
+    const clean_metadata = {}
+    if (metadata) {
+        Object.keys(metadata).forEach((key) => {
+            if (metadata[key] !== 'OTHER') {
+                clean_metadata[key] = metadata[key]
+            }
+        })
+    }
+
     return (
         <div className={`w-full ${addPaddingBot && isTask ? 'pb-4' : 'pb-0'}`}>
             <div
@@ -727,6 +776,16 @@ export function TaskRow({ role, avatarClass, utterance, isTask, addPaddingBot }:
                             <MessageRender>{utterance}</MessageRender>
                         </div>
                     </div>
+
+                    {clean_metadata && Object.keys(clean_metadata).length > 0 && (
+                        <div className="metadata flex">
+                            {Object.keys(clean_metadata).map((key) => (
+                                <span key={key} className="metadata-pill border border-gray-300 rounded">
+                                    {key + ': ' + clean_metadata[key]}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

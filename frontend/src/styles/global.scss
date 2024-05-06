@@ -729,3 +729,17 @@ body {
     height: 1.5rem !important;
     color: white;
 }
+
+.metadata-pill {
+    padding: 0.25rem 0.5rem;
+    margin-top: 15px;
+    margin-left: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1rem;
+    color: var(--muted-alt);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--secondary-3000-light);
+    border-radius: 1rem;
+}
