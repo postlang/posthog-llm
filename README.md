@@ -2,6 +2,9 @@
   <img alt="posthoglogo" src="https://user-images.githubusercontent.com/65415371/205059737-c8a4f836-4889-4654-902e-f302b187b6a0.png">
 </p>
 <p align="center">
+  <a href="https://discord.gg/u7tZDeWQ">
+        <img alt="Discord Community" src="https://dcbadge.limes.pink/api/server/https://discord.gg/u7tZDeWQ&?style=flat-square">
+    </a>
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 <a href='https://posthog.com/contributors'><img src='https://img.shields.io/badge/all_contributors-251-orange.svg?style=flat-square' /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -9,9 +12,6 @@
   <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/posthog/posthog"/>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/posthog/posthog"/>
   <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/posthog/posthog"/>
-  <a href="https://join.slack.com/t/uptraincommunity/shared_invite/zt-1yih3aojn-CEoR_gAh6PDSknhFmuaJeg">
-        <img alt="Slack Community" src="https://dcbadge.limes.pink/api/server/https://discord.gg/u7tZDeWQ&?style=flat-square">
-    </a>
 </p>
 
 <p align="center">
@@ -22,9 +22,9 @@
 
 PostHog-LLM is a fork of [PostHog](https://github.com/PostHog/posthog) with extensions 
 to use PostHog as a LLM text analytics platform and be able to display the LLM 
-interactions while exploring insights.
+interactions while exploring insights. Understand user behavior interacting with your LLMs to gain insights into their preferences, identify patterns and discover how you can improve your LLMs products to better serve your users. 
 
-## Get started for free
+## Get started
 
 ### Self-hosted
 
