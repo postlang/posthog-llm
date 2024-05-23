@@ -83,7 +83,6 @@ services:
             - clickhouse
             - kafka
             - object_storage
-
     plugins:
         extends:
             file: docker-compose.base.yml
@@ -99,6 +98,9 @@ services:
             - clickhouse
             - kafka
             - object_storage
+        # Required for plugins to be able to access the host machine (locally)
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
 
     caddy:
         image: caddy:2.6.1
