@@ -69,8 +69,7 @@ Prompt attack detection: Detects prompt attacks in text, providing a safeguard a
 
 These plugins link the PostHog data ingestion process with the machine learning models. These models need to be hosted on separate servers, a setup process that is detailed within each model's repository.
 
-To install a plugin, navigate to the `Data Pipeline` section within the PostHog-LLM user interface, select the 'Manage apps tab' tab, click on `Install app advanced button` and enter the GitHub repository URL of the plugin into the designated field. This action will fetch the plugin's code from GitHub and initiate its installation. Hit the `Save` button and then go to the `Apps` tab to specify the address and port of your model server in the `API_SERVER_URL` (e.g. `http://localhost:9612`) field.
-
+To install a plugin, navigate to the `Data Pipeline` section within the PostHog-LLM user interface, select the 'Manage apps tab' tab, click on `Install app advanced button` and enter the GitHub repository URL of the plugin into the designated field. This action will fetch the plugin's code from GitHub and initiate its installation. Hit the `Save` button and then go to the `Apps` tab to specify the address and port of your model server in the `API_SERVER_URL` (e.g. `http://localhost:9612`, `http://flowdetect:9612`, `http://emotion:9612`, `http://toxicity:9612`, `http://prompt-attack:9612`) field.
 PostHog's plugin system is designed to facilitate the configuration of a model pipeline, enabling sequential data processing where each model can access and use properties appended by preceding models. The order of these models, as displayed in the PostHog UI, is important for ensuring that each model operates on the enriched dataset provided by its predecessors. PostHog-LLM adheres to a naming convention for LLM properties, and the machine learning models above are triggered exclusively for LLM events that include interaction texts.
 
 
