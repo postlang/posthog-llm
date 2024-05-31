@@ -199,6 +199,7 @@ cp posthog-llm/docker-compose.base.yml docker-compose.base.yml
 cp posthog-llm/docker-compose.hobby.yml docker-compose.yml.tmpl
 envsubst < docker-compose.yml.tmpl > docker-compose.yml
 rm docker-compose.yml.tmpl
+sudo -E docker network create postlang || true
 echo "Starting the stack!" 
 sudo -E docker-compose -f docker-compose.yml up -d
 

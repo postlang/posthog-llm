@@ -13,20 +13,20 @@ services:
         extends:
             file: docker-compose.base.yml
             service: db
-        # Pin to postgres 12 until we have a process for pg_upgrade to postgres 15 for exsisting installations
         image: ${DOCKER_REGISTRY_PREFIX:-}postgres:12-alpine
         volumes:
             - postgres-data:/var/lib/postgresql/data
+        networks:
+            - postlang
 
     redis:
         extends:
             file: docker-compose.base.yml
             service: redis
+        networks:
+            - postlang
+
     clickhouse:
-        #
-        # Note: please keep the default version in sync across
-        #       `posthog` and the `charts-clickhouse` repos
-        #
         extends:
             file: docker-compose.base.yml
             service: clickhouse
@@ -40,6 +40,9 @@ services:
             - ./posthog-llm/docker/clickhouse/config.xml:/etc/clickhouse-server/config.xml
             - ./posthog-llm/docker/clickhouse/users.xml:/etc/clickhouse-server/users.xml
             - clickhouse-data:/var/lib/clickhouse
+        networks:
+            - postlang
+
     zookeeper:
         extends:
             file: docker-compose.base.yml
@@ -48,12 +51,17 @@ services:
             - zookeeper-datalog:/datalog
             - zookeeper-data:/data
             - zookeeper-logs:/logs
+        networks:
+            - postlang
+
     kafka:
         extends:
             file: docker-compose.base.yml
             service: kafka
         depends_on:
             - zookeeper
+        networks:
+            - postlang
 
     worker:
         extends:
@@ -64,6 +72,9 @@ services:
             SITE_URL: https://$DOMAIN
             SECRET_KEY: $POSTHOG_SECRET
         build: ${BUILD_CONTEXT:-.}
+        networks:
+            - postlang
+
     web:
         extends:
             file: docker-compose.base.yml
@@ -83,6 +94,9 @@ services:
             - clickhouse
             - kafka
             - object_storage
+        networks:
+            - postlang
+
     plugins:
         extends:
             file: docker-compose.base.yml
@@ -98,9 +112,11 @@ services:
             - clickhouse
             - kafka
             - object_storage
-        # Required for plugins to be able to access the host machine (locally)
         extra_hosts:
             - 'host.docker.internal:host-gateway'
+        privileged: true # Run the container in privileged mode
+        networks:
+            - postlang
 
     caddy:
         image: caddy:2.6.1
@@ -112,6 +128,9 @@ services:
             - ./Caddyfile:/etc/caddy/Caddyfile
         depends_on:
             - web
+        networks:
+            - postlang
+
     object_storage:
         extends:
             file: docker-compose.base.yml
@@ -119,6 +138,8 @@ services:
         restart: on-failure
         volumes:
             - object_storage:/data
+        networks:
+            - postlang
 
     asyncmigrationscheck:
         extends:
@@ -130,8 +151,9 @@ services:
             SITE_URL: https://$DOMAIN
             SECRET_KEY: $POSTHOG_SECRET
             SKIP_ASYNC_MIGRATIONS_SETUP: 0
+        networks:
+            - postlang
 
-    # Temporal containers
     temporal:
         extends:
             file: docker-compose.base.yml
@@ -142,12 +164,18 @@ services:
             - 7233:7233
         volumes:
             - ./posthog-llm/docker/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
+        networks:
+            - postlang
+
     temporal-admin-tools:
         extends:
             file: docker-compose.base.yml
             service: temporal-admin-tools
         depends_on:
             - temporal
+        networks:
+            - postlang
+
     temporal-ui:
         extends:
             file: docker-compose.base.yml
@@ -159,6 +187,9 @@ services:
                 condition: service_started
             db:
                 condition: service_healthy
+        networks:
+            - postlang
+
     temporal-django-worker:
         command: /compose/temporal-django-worker
         extends:
@@ -177,6 +208,8 @@ services:
             - kafka
             - object_storage
             - temporal
+        networks:
+            - postlang
 
 volumes:
     zookeeper-data:
@@ -185,3 +218,7 @@ volumes:
     object_storage:
     postgres-data:
     clickhouse-data:
+
+networks:
+    postlang:
+        external: true
