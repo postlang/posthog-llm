@@ -2,8 +2,8 @@
   <img alt="posthoglogo" src="https://user-images.githubusercontent.com/65415371/205059737-c8a4f836-4889-4654-902e-f302b187b6a0.png">
 </p>
 <p align="center">
-  <a href="https://discord.gg/u7tZDeWQ">
-        <img alt="Discord Community" src="https://dcbadge.limes.pink/api/server/https://discord.gg/u7tZDeWQ&?style=flat-square">
+  <a href="https://discord.gg/uNurWjDkke">
+        <img alt="Discord Community" src="https://dcbadge.limes.pink/api/server/https://discord.gg/uNurWjDkke&?style=flat-square">
     </a>
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 <a href='https://posthog.com/contributors'><img src='https://img.shields.io/badge/all_contributors-251-orange.svg?style=flat-square' /></a>
