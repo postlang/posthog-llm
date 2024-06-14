@@ -714,10 +714,19 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
             distinct_ids = [di for sa in serialized_actors for di in sa["distinct_ids"]]
             ev = json.loads(req_dict["events"])[0].get("name")
             req_dict["event"] = ev
+
             if "date_from" in req_dict:
-                req_dict["after"] = req_dict["date_from"]
+                if req_dict["date_from"] != "all":
+                    req_dict["after"] = req_dict["date_from"]
+                else:
+                    # for insights that do not contain timeseries.
+                    # Insights with no timeseries add 'date_from = all' and no 'date_to' is sent
+                    assert "date_to" not in req_dict, "date_to found when 'date_from = all'."
+                    req_dict["before"] = datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
+
             if "date_to" in req_dict:
                 req_dict["before"] = req_dict["date_to"]
+
             req_dict["distinct_ids"] = distinct_ids
 
             query_result = query_events_list(
@@ -802,7 +811,6 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
 
         return self._respond_with_cached_results(self.calculate_trends_persons(request))
 
-    @cached_by_filters
     def calculate_trends_persons(
         self, request: request.Request
     ) -> Dict[str, Tuple[List, Optional[str], Optional[str], int]]:
