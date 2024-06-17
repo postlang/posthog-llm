@@ -191,13 +191,23 @@ class ActorBaseQuery:
             ).values_list("session_id", flat=True)
         )
         session_ids_with_recordings = session_ids_with_all_recordings.difference(session_ids_with_deleted_recordings)
-
+        matched_session_ids_by_actor_id: Dict[Union[uuid.UUID, str], Set[str]] = {
+            actor["id"]: set() for actor in serialized_actors
+        }
+        matched_events_ids_by_actor_id: Dict[Union[uuid.UUID, str], Set[str]] = {
+            actor["id"]: set() for actor in serialized_actors
+        }
         matched_recordings_by_actor_id: Dict[Union[uuid.UUID, str], List[MatchedRecording]] = {}
+
         for row in raw_result:
+            actor_id = row[0]
             recording_events_by_session_id: Dict[str, List[EventInfoForRecording]] = {}
             if len(row) > session_events_column_index - 1:
                 for event in row[session_events_column_index]:
                     event_session_id = event[2]
+                    matched_events_ids_by_actor_id[actor_id].add(event[1])
+                    if event_session_id:
+                        matched_session_ids_by_actor_id[actor_id].add(event_session_id)
                     if event_session_id and event_session_id in session_ids_with_recordings:
                         recording_events_by_session_id.setdefault(event_session_id, []).append(
                             EventInfoForRecording(timestamp=event[0], uuid=event[1], window_id=event[3])
@@ -215,6 +225,8 @@ class ActorBaseQuery:
         serialized_actors_with_recordings = []
         for actor in serialized_actors:
             actor["matched_recordings"] = matched_recordings_by_actor_id[actor["id"]]
+            actor["matched_sessions"] = list(matched_session_ids_by_actor_id[actor["id"]])
+            actor["matched_events"] = list(matched_events_ids_by_actor_id[actor["id"]])
             serialized_actors_with_recordings.append(actor)
 
         return serialized_actors_with_recordings

@@ -1017,6 +1017,8 @@ export interface CommonActorType {
     /** @format date-time */
     created_at: string
     matched_recordings: MatchedRecording[]
+    matched_sessions: string[]
+    matched_events: string[]
     value_at_data_point: number | null
 }
 

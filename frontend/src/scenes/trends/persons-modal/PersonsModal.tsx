@@ -297,9 +297,10 @@ export function PersonsModal({
         </>
     )
 }
+const MissingSessionPrefix = 'missing_session_'
 
 function getSessionId(event: Record<string, string>): string {
-    return event['$session_id'] ? event['$session_id'] : ``
+    return event['$session_id'] ? event['$session_id'] : `${MissingSessionPrefix}${event['id']}`
 }
 
 function processArrayInput(event: [], timestamp: any, output: string): ProcessedMessage {
@@ -399,6 +400,29 @@ function preProcessEvents(llmEvents: []): Record<string, unknown> {
     return segmentedDialogues
 }
 
+function filterBySessionsOrEvents(
+    grpConvs: Record<string, unknown>,
+    matched_sessions: string[],
+    matched_events: string[]
+): Record<string, unknown> {
+    const filteredConversations: Record<string, unknown> = {}
+
+    for (const SessionOrEventId in grpConvs) {
+        if (SessionOrEventId.includes(MissingSessionPrefix)) {
+            const eventId = SessionOrEventId.replace(MissingSessionPrefix, '')
+            if (matched_events.includes(eventId)) {
+                filteredConversations[SessionOrEventId] = grpConvs[SessionOrEventId]
+            }
+        } else {
+            if (matched_sessions.includes(SessionOrEventId)) {
+                filteredConversations[SessionOrEventId] = grpConvs[SessionOrEventId]
+            }
+        }
+    }
+
+    return filteredConversations
+}
+
 interface ActorRowProps {
     actor: ActorType
     onOpenRecording: (sessionRecording: Pick<SessionRecordingType, 'id' | 'matching_events'>) => void
@@ -407,14 +431,18 @@ interface ActorRowProps {
 
 export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: ActorRowProps): JSX.Element {
     const [expanded, setExpanded] = useState(false)
+    const matchedSessions = actor.matched_sessions || []
+    const matchedEvents = actor.matched_events || []
 
     const { ['$llm-events']: convs, ...remaining_props } = actor.properties
-    let segmentedConvs = {}
+    let grpConvs = {}
     if (convs) {
         // @ts-expect-error
-        segmentedConvs = preProcessEvents(convs, actor.distinct_ids[0])
+        grpConvs = preProcessEvents(convs, actor.distinct_ids[0])
     }
 
+    // filter by matched sessions if we have them
+    grpConvs = filterBySessionsOrEvents(grpConvs, matchedSessions, matchedEvents)
     const [tab, setTab] = useState('properties')
     const name = isGroupType(actor) ? groupDisplayId(actor.group_key, actor.properties) : asDisplay(actor)
 
@@ -557,10 +585,10 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                                         <div className="p-2 space-y-2 font-medium mt-1">
                                             <div className="flex justify-between items-center px-2">
                                                 <span>
-                                                    {pluralize(Object.keys(segmentedConvs).length, 'matched session')}
+                                                    {pluralize(Object.keys(grpConvs).length, 'matched session')}
                                                 </span>
                                             </div>
-                                            {Object.entries(segmentedConvs).map(([sessionId, conversation], index) => (
+                                            {Object.entries(grpConvs).map(([sessionId, conversation], index) => (
                                                 <ConvRow
                                                     key={index}
                                                     convId={`Session - ${sessionId}`}
@@ -573,8 +601,8 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                                                             metadata: Record<string, any>
                                                         }[]
                                                     }
-                                                    expand={Object.keys(segmentedConvs).length === 1}
-                                                    setBorder={index !== Object.keys(segmentedConvs).length - 1} // Don't set border for the last conversation
+                                                    expand={Object.keys(grpConvs).length === 1}
+                                                    setBorder={index !== Object.keys(grpConvs).length - 1} // Don't set border for the last conversation
                                                 />
                                             ))}
                                         </div>

@@ -351,6 +351,7 @@ def set_people_events(s_people, s_events):
                 or k in ["$session_id", "input", "output"]
             }
             props["timestamp"] = ev["timestamp"]
+            props["id"] = ev["id"]
             grouped_events.setdefault(person_id, []).append(props)
 
     # set the person event list in a property
