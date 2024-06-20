@@ -208,10 +208,10 @@ class ActorBaseQuery:
                     event_session_id = event[2]
                     # if the event has a session ID, add it to matched_session_ids_by_actor_id
                     if event_session_id:
-                        matched_session_ids_by_actor_id[actor_id].add(event_session_id)
+                        matched_session_ids_by_actor_id[actor_id].add(str(event_session_id))
                     else:
                         # else, add the event ID to matched_events_ids_by_actor_id
-                        matched_events_ids_by_actor_id[actor_id].add(event_id)
+                        matched_events_ids_by_actor_id[actor_id].add(str(event_id))
                     if event_session_id and event_session_id in session_ids_with_recordings:
                         recording_events_by_session_id.setdefault(event_session_id, []).append(
                             EventInfoForRecording(timestamp=event[0], uuid=event[1], window_id=event[3])

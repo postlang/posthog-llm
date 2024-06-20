@@ -702,6 +702,23 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
 
         return self._respond_with_cached_results(self.calculate_funnel_persons(request))
 
+    def filter_llm_results(self, actors: List[Person], llm_results: Dict) -> List[Dict]:
+        # Filters conversations by session or event UUIDs to display in the llm-events tab.
+
+        all_matched_sessions = []
+        for actor in actors:
+            all_matched_sessions.extend(actor["matched_sessions"])
+
+        filtered_results = []
+        for event in llm_results:
+            # events without $session_id prop are treated as a sessions
+            # since they appear as a standalone conversation in the llm-events tab
+            session_id = event["properties"].get("$session_id", event.get("id"))
+            if session_id in all_matched_sessions:
+                filtered_results.append(event)
+
+        return filtered_results
+
     def extend_actors_with_llm_events(self, filter, serialized_actors, request):
         from posthog.models.event.query_event_list import query_events_list
         from posthog.models.event.util import ClickhouseEventSerializer
@@ -733,6 +750,7 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
                 query_result[0:10000],
                 many=True,
             ).data
+            llm_ev_result = self.filter_llm_results(serialized_actors, llm_ev_result)
             serialized_actors = set_people_events(serialized_actors, llm_ev_result)
 
         return serialized_actors
