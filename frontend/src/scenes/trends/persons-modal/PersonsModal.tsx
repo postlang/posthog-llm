@@ -297,10 +297,9 @@ export function PersonsModal({
         </>
     )
 }
-const MissingSessionPrefix = 'missing_session_'
 
 function getSessionId(event: Record<string, string>): string {
-    return event['$session_id'] ? event['$session_id'] : `${MissingSessionPrefix}${event['id']}`
+    return event['$session_id'] ? event['$session_id'] : `${event['id']}`
 }
 
 function processArrayInput(event: [], timestamp: any, output: string): ProcessedMessage {
@@ -400,26 +399,17 @@ function preProcessEvents(llmEvents: []): Record<string, unknown> {
     return segmentedDialogues
 }
 
-function filterBySessionsOrEvents(
-    grpConvs: Record<string, unknown>,
-    matched_sessions: string[],
-    matched_events: string[]
-): Record<string, unknown> {
+function filterBySessions(grpConvs: Record<string, unknown>, matched_sessions: string[]): Record<string, unknown> {
     const filteredConversations: Record<string, unknown> = {}
+    /**
+     * Filters conversations by session or event UUIDs to display in the llm-events tab.
+     */
 
     for (const SessionOrEventId in grpConvs) {
-        if (SessionOrEventId.includes(MissingSessionPrefix)) {
-            const eventId = SessionOrEventId.replace(MissingSessionPrefix, '')
-            if (matched_events.includes(eventId)) {
-                filteredConversations[SessionOrEventId] = grpConvs[SessionOrEventId]
-            }
-        } else {
-            if (matched_sessions.includes(SessionOrEventId)) {
-                filteredConversations[SessionOrEventId] = grpConvs[SessionOrEventId]
-            }
+        if (matched_sessions.includes(SessionOrEventId)) {
+            filteredConversations[SessionOrEventId] = grpConvs[SessionOrEventId]
         }
     }
-
     return filteredConversations
 }
 
@@ -432,7 +422,6 @@ interface ActorRowProps {
 export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: ActorRowProps): JSX.Element {
     const [expanded, setExpanded] = useState(false)
     const matchedSessions = actor.matched_sessions || []
-    const matchedEvents = actor.matched_events || []
 
     const { ['$llm-events']: convs, ...remaining_props } = actor.properties
     let grpConvs = {}
@@ -442,7 +431,7 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
     }
 
     // filter by matched sessions if we have them
-    grpConvs = filterBySessionsOrEvents(grpConvs, matchedSessions, matchedEvents)
+    grpConvs = filterBySessions(grpConvs, matchedSessions)
     const [tab, setTab] = useState('properties')
     const name = isGroupType(actor) ? groupDisplayId(actor.group_key, actor.properties) : asDisplay(actor)
 

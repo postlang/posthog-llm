@@ -1017,8 +1017,10 @@ export interface CommonActorType {
     /** @format date-time */
     created_at: string
     matched_recordings: MatchedRecording[]
+    /* has all sessions UUIDs that match a query filter. Used to display llm-events
+    Might contain event UUIDs if the event has no session UUID. Events with no session UUID are treated as sessions themselves.
+    */
     matched_sessions: string[]
-    matched_events: string[]
     value_at_data_point: number | null
 }
 
