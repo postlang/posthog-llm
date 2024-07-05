@@ -352,6 +352,7 @@ def set_people_events(s_people, s_events):
             }
             props["timestamp"] = ev["timestamp"]
             props["id"] = ev["id"]
+            props["highlight"] = ev.get("highlight")
             grouped_events.setdefault(person_id, []).append(props)
 
     # set the person event list in a property

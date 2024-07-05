@@ -197,6 +197,9 @@ class ActorBaseQuery:
         matched_events_ids_by_actor_id: Dict[Union[uuid.UUID, str], Set[str]] = {
             actor["id"]: set() for actor in serialized_actors
         }
+        matched_highlight_events_ids: Dict[Union[uuid.UUID, str], Set[str]] = {
+            actor["id"]: set() for actor in serialized_actors
+        }
         matched_recordings_by_actor_id: Dict[Union[uuid.UUID, str], List[MatchedRecording]] = {}
 
         for row in raw_result:
@@ -206,6 +209,8 @@ class ActorBaseQuery:
                 for event in row[session_events_column_index]:
                     event_id = event[1]
                     event_session_id = event[2]
+                    # always add the matched events to highlights dict
+                    matched_highlight_events_ids[actor_id].add(str(event_id))
                     # if the event has a session ID, add it to matched_session_ids_by_actor_id
                     if event_session_id:
                         matched_session_ids_by_actor_id[actor_id].add(str(event_session_id))
@@ -232,6 +237,7 @@ class ActorBaseQuery:
             actor["matched_sessions"] = list(matched_session_ids_by_actor_id[actor["id"]]) + list(
                 matched_events_ids_by_actor_id[actor["id"]]
             )
+            actor["highlight_events"] = list(matched_highlight_events_ids[actor["id"]])
             serialized_actors_with_recordings.append(actor)
 
         return serialized_actors_with_recordings

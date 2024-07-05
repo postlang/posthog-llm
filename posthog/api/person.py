@@ -702,6 +702,19 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
 
         return self._respond_with_cached_results(self.calculate_funnel_persons(request))
 
+    def tag_events_highlight(self, actors: List[Person], llm_results):
+        all_highlight_events = []
+        for actor in actors:
+            all_highlight_events.extend(actor["highlight_events"])
+            actor.pop("highlight_events")
+
+        for event in llm_results:
+            event_id = event.get("id")
+            if event_id in all_highlight_events:
+                event["highlight"] = True
+
+        return llm_results
+
     def filter_llm_results(self, actors: List[Person], llm_results: Dict) -> List[Dict]:
         # Filters conversations by session or event UUIDs to display in the llm-events tab.
 
@@ -751,6 +764,7 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
                 many=True,
             ).data
             llm_ev_result = self.filter_llm_results(serialized_actors, llm_ev_result)
+            llm_ev_result = self.tag_events_highlight(serialized_actors, llm_ev_result)
             serialized_actors = set_people_events(serialized_actors, llm_ev_result)
 
         return serialized_actors
