@@ -340,21 +340,22 @@ type ProcessedMessage = {
 }
 
 function processStringInput(event: Record<string, any>, allEvents: []): ProcessedMessage {
-    const msg = {
+    const msg: ProcessedMessage = {
         input: event['$llm_input'],
         timestamp: event['timestamp'],
         output: event['$llm_output'],
+        highlight: event['highlight'] ? true : false,
     }
 
     // add metadata to the message
-    const metadata = {}
+    const metadata: Record<string, any> = {}
+
     Object.keys(event).forEach((key) => {
         if (key.startsWith('user_') || key.startsWith('agent_')) {
             metadata[key] = event[key]
         }
     })
     msg['metadata'] = metadata
-    msg['highlight'] = event['highlight'] ? true : false
 
     // find the history of the current event
     const history = allEvents.filter(
@@ -395,7 +396,7 @@ function addTaskToDialogues(
     dialogues[sessionId].push(task)
 }
 
-function preProcessEvents(llmEvents: []): Record<string, unknown> {
+function preProcessEvents(llmEvents: []): Record<string, any> {
     /* Preprocess the events to segment them by session ID */
     const segmentedDialogues = {}
 
@@ -405,6 +406,24 @@ function preProcessEvents(llmEvents: []): Record<string, unknown> {
     })
 
     return segmentedDialogues
+}
+
+function adjustHighlightedEvents(grpConvs: Record<string, Array<any>>): void {
+    // If every conversation task matches a filter or just a single task, no need to highlight anything
+    for (const convKey in grpConvs) {
+        if (grpConvs.hasOwnProperty(convKey)) {
+            const events = grpConvs[convKey]
+
+            const allHighlightTrue = events.every((event) => event.highlight)
+
+            // If all events have highlight set to true, set highlight to false for all events
+            if (allHighlightTrue) {
+                events.forEach((event) => {
+                    event.highlight = false
+                })
+            }
+        }
+    }
 }
 
 interface ActorRowProps {
@@ -418,13 +437,14 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
 
     const { ['$llm-events']: convs, ...remaining_props } = actor.properties
     let grpConvs = {}
+
     if (convs) {
         // @ts-expect-error
         grpConvs = preProcessEvents(convs, actor.distinct_ids[0])
+        adjustHighlightedEvents(grpConvs)
     }
     const [tab, setTab] = useState('properties')
     const name = isGroupType(actor) ? groupDisplayId(actor.group_key, actor.properties) : asDisplay(actor)
-
     const onOpenRecordingClick = (): void => {
         if (!actor.matched_recordings) {
             return
@@ -610,14 +630,7 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
 
 interface ConvRowProps {
     convId: string
-    conversation: {
-        input: string
-        output: string
-        timestamp: string
-        history: []
-        metadata: Record<string, any>
-        highlight: boolean
-    }[]
+    conversation: ProcessedMessage[]
     expand: boolean
     setBorder?: boolean
 }
@@ -685,7 +698,7 @@ interface TaskProps {
     expandHistory?: boolean
     isTask?: boolean
     metadata?: Record<string, any>
-    highlight: boolean
+    highlight?: boolean
 }
 
 export function Task({
@@ -700,8 +713,8 @@ export function Task({
 }: TaskProps): JSX.Element {
     const user_class = 'user-avatar-div'
     const agent_class = 'agent-avatar-div'
-    const user_metadata = {}
-    const agent_metadata = {}
+    const user_metadata: Record<string, any> = {}
+    const agent_metadata: Record<string, any> = {}
 
     if (metadata) {
         Object.keys(metadata).forEach((key) => {
@@ -768,7 +781,7 @@ interface TaskRowProps {
     addPaddingBot?: boolean
 }
 export function TaskRow({ role, avatarClass, utterance, isTask, metadata, addPaddingBot }: TaskRowProps): JSX.Element {
-    const clean_metadata = {}
+    const clean_metadata: Record<string, any> = {}
     if (metadata) {
         Object.keys(metadata).forEach((key) => {
             if (metadata[key] !== 'OTHER') {
