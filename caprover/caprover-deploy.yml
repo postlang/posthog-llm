@@ -39,9 +39,9 @@ services:
                 - COPY --from=helper /etc/clickhouse-server/config.xml /etc/clickhouse-server/config.xml
                 - COPY --from=helper /etc/clickhouse-server/users.xml /etc/clickhouse-server/users.xml
         volumes:
-            - /home/andre/pl-2/posthog-llm/posthog/idl:/idl
-            - /home/andre/pl-2/posthog-llm/docker/clickhouse/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-            - clickhouse-data:/var/lib/clickhouse
+            - $$cap_posthog_idl_path:/idl
+            - $$cap_clickhouse_entry_folder:/docker-entrypoint-initdb.d
+            - $$cap_appname-clickhouse:/var/lib/clickhouse
         depends_on:
             - $$cap_appname-kafka
             - $$cap_appname-zookeeper
@@ -143,6 +143,14 @@ caproverOneClickApp:
           label: Clickhouse secure
           defaultValue: 'false'
           description: Whether to secure ClickHouse connection
+        - id: $$cap_posthog_idl_path
+          description: Set the FULL path to /posthog/idl folder
+          label: Location for /posthog/idl folder
+          validRegex: /\/[^\s-][a-zA-Z0-9_\/-]*[^\/][^\s-]/
+        - id: $$cap_clickhouse_entry_folder
+          description: Set the FULL path to /clickhouse/docker-entrypoint-initdb.d folder
+          label: Location for /clickhouse/docker-entrypoint-initdb.d folder
+          validRegex: /\/[^\s-][a-zA-Z0-9_\/-]*[^\/][^\s-]/
 
     instructions:
         start: >-
@@ -161,4 +169,3 @@ volumes:
     zookeeper-data:
     zookeeper-datalog:
     zookeeper-logs:
-    clickhouse-data:
