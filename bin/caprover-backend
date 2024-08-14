@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Script specifically made for CapRover to use in CI/CD workflows or with a template file
+# Check .github/workflows/deploy for an example on how to CI/CD
+# Starts a django web service
+
 set -e
 
 ./bin/migrate

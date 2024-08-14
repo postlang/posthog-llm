@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Script specifically made for CapRover to use in CI/CD workflows or with a template file
+# Check .github/workflows/deploy for an example on how to CI/Cd
+# Starts a celery work service
+
 ./bin/migrate-check
 
 # Stop any background jobs on exit

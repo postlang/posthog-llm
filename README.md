@@ -34,6 +34,10 @@ You can deploy a hobby instance in one line on Linux with Docker (recommended 4G
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/postlang/posthog-llm/HEAD/bin/deploy-hobby)"
  ``` 
 
+### Deploy using CapRover
+
+We also make it easy and fast to deploy using CapRover Nagivate to [caprover](./caprover/) folder to see how.
+
 
 ## Uploading data
 

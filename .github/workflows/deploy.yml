@@ -2,7 +2,7 @@ name: Deploy Posthog LLM to Caprover
 
 on:
     push:
-        branches: ['main']
+        branches: ['llm-main']
 
 jobs:
     build_and_deploy:
@@ -23,7 +23,7 @@ jobs:
                   password: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Preset Image Name
-              run: echo "IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$(echo ${{ github.sha }} | cut -c1-7) | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+              run: echo "IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest" >> $GITHUB_ENV
 
             - name: Build and push Docker Image
               uses: docker/build-push-action@v5
