@@ -33,18 +33,13 @@ services:
         restart: on-failure
         caproverExtra:
             dockerfileLines:
-                - FROM andremoura/my-clickhouse-image:latest AS helper
+                - FROM andremoura/clickhouse:latest AS helper
                 - RUN sed -i "s|<host>zookeeper</host>|<host>srv-captain--$$cap_appname-zookeeper</host>|" /etc/clickhouse-server/config.xml
-                - FROM clickhouse/clickhouse-server:23.11.2.11-alpine
-                - COPY --from=helper /etc/clickhouse-server/config.xml /etc/clickhouse-server/config.xml
-                - COPY --from=helper /etc/clickhouse-server/users.xml /etc/clickhouse-server/users.xml
-        volumes:
-            - $$cap_posthog_idl_path:/idl
-            - $$cap_clickhouse_entry_folder:/docker-entrypoint-initdb.d
-            - $$cap_appname-clickhouse:/var/lib/clickhouse
         depends_on:
             - $$cap_appname-kafka
             - $$cap_appname-zookeeper
+        volumes:
+            - $$cap_appname-clickhouse:/var/lib/clickhouse
 
     $$cap_appname-kafka:
         image: ghcr.io/posthog/kafka-container:v2.8.2
@@ -143,14 +138,6 @@ caproverOneClickApp:
           label: Clickhouse secure
           defaultValue: 'false'
           description: Whether to secure ClickHouse connection
-        - id: $$cap_posthog_idl_path
-          description: Set the FULL path to /posthog/idl folder
-          label: Location for /posthog/idl folder
-          validRegex: /\/[^\s-][a-zA-Z0-9_\/-]*[^\/][^\s-]/
-        - id: $$cap_clickhouse_entry_folder
-          description: Set the FULL path to /clickhouse/docker-entrypoint-initdb.d folder
-          label: Location for /clickhouse/docker-entrypoint-initdb.d folder
-          validRegex: /\/[^\s-][a-zA-Z0-9_\/-]*[^\/][^\s-]/
 
     instructions:
         start: >-
