@@ -160,6 +160,9 @@ export function Login(): JSX.Element {
                         <SSOEnforcedLoginButton provider="saml" email={login.email} />
                     )}
                 </Form>
+                <div className="mt-4 text-center text-muted">
+                    Dont have an account? <Link to="/signup">Register here</Link>
+                </div>
                 {preflight?.cloud && (
                     <div className="text-center mt-4">
                         Don't have an account?{' '}

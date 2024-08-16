@@ -205,11 +205,6 @@ export const sceneLogic = kea<sceneLogicType>([
             const { user } = userLogic.values
             const { preflight } = preflightLogic.values
 
-            if (scene === Scene.Signup && preflight && !preflight.can_create_org) {
-                // If user is on an already initiated self-hosted instance, redirect away from signup
-                router.actions.replace(urls.login())
-                return
-            }
             if (scene === Scene.Login && preflight?.demo) {
                 // In the demo environment, there's only passwordless "login" via the signup scene
                 router.actions.replace(urls.signup())
