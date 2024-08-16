@@ -1,0 +1,58 @@
+name: Deploy Posthog LLM to Caprover
+
+on:
+    push:
+        branches: ['llm-main']
+
+jobs:
+    build_and_deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.repository_owner }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Preset Image Name
+              run: echo "IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest" >> $GITHUB_ENV
+
+            - name: Build and push Docker Image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./Dockerfile.caprover
+                  push: true
+                  tags: ${{ env.IMAGE_URL }}
+
+            - name: Deploy Web to CapRrover
+              uses: caprover/deploy-from-github@v1.1.2
+              with:
+                  server: '${{ secrets.CAPROVER_SERVER }}'
+                  app: '${{ secrets.WEB_APP }}'
+                  token: '${{ secrets.WEB_TOKEN }}'
+                  image: ${{ env.IMAGE_URL }}
+
+            - name: Deploy Plugin to CapRrover
+              uses: caprover/deploy-from-github@v1.1.2
+              with:
+                  server: '${{ secrets.CAPROVER_SERVER }}'
+                  app: '${{ secrets.PLUGIN_APP }}'
+                  token: '${{ secrets.PLUGIN_TOKEN }}'
+                  image: ${{ env.IMAGE_URL }}
+
+            - name: Deploy Worker to CapRrover
+              uses: caprover/deploy-from-github@v1.1.2
+              with:
+                  server: '${{ secrets.CAPROVER_SERVER }}'
+                  app: '${{ secrets.WORKER_APP }}'
+                  token: '${{ secrets.WORKER_TOKEN }}'
+                  image: ${{ env.IMAGE_URL }}

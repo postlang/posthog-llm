@@ -14,7 +14,7 @@ Before deploying PostHog with CapRover, ensure that you have already set up a Ca
 
 Once you have CapRover up and running, you're ready to deploy PostHog-LLM.
 
-To deploy PostHog-LLM, we'll use a CapRover template file ('`caprover-deploy.yml`) that simplifies the process. The template file will be used to deploy several services required by PostHog-LLM.
+To deploy PostHog-LLM, we'll use a CapRover template file (`caprover-deploy.yml`) that simplifies the process. The template file will be used to deploy several services required by PostHog-LLM.
 
 Follow the steps below:
 
@@ -37,7 +37,7 @@ Navigate to the `web` service http link and PostHog Preflight page will show up.
 
 
 ##  Services
-* Kafka: A distributed event streaming platform used to handle real-time data. A key component in PostHog event ingestion service. Events are written to the Kafka topics and then used by other services (Clickhouse, Plugin-server)
+* Kafka: A distributed event streaming platform used to handle real-time data. A key component in PostHog event ingestion service. Events are written to the Kafka topics and then pulled by other services (Clickhouse, Plugin-server)
 
 * Zookeeper: A centralized service for maintaining configuration information, naming and for coordinating Kafka and ClickHouse clusters
 
@@ -52,3 +52,20 @@ Then we have the four main PostHog components:
 * Web server running Django amd API for users and Frontend - running under the web service
 * Plugin server to handle event ingestion and apps/plugins (GeoIP for instance)
 * Celery Worker: for background tasks
+
+# CD
+
+The `cd-deploy.yml` file provides a straightforward example of a continuous deployment setup. This configuration automatically updates three services:
+
+    Web
+    Plugin Server
+    Worker
+
+The process involves building the PostHog-LLM Docker image and pushing it to DockerHub. Each service is then deployed to its respective CapRover app. The command executed for each service is defined by the `APP_COMMAND` environment variable, which is set in the Apps Config tab of the CapRover dashboard.
+
+To use this workflow, the user must:
+
+* Specify the CapRover server URL in the format http://captain.your-domain.com.
+* Store the app names and their corresponding tokens as secrets. Check Deployment tab in your CapRover apps.
+* Provide Docker credentials for logging into the container registry (username and token).
+
