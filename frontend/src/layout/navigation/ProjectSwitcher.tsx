@@ -7,11 +7,10 @@ import { LemonSnack } from 'lib/lemon-ui/LemonSnack/LemonSnack'
 import { removeProjectIdIfPresent } from 'lib/utils/router-utils'
 import { useMemo } from 'react'
 import { organizationLogic } from 'scenes/organizationLogic'
-import { sceneLogic } from 'scenes/sceneLogic'
 import { isAuthenticatedTeam, teamLogic } from 'scenes/teamLogic'
 import { urls } from 'scenes/urls'
 
-import { AvailableFeature, TeamBasicType } from '~/types'
+import { TeamBasicType } from '~/types'
 
 import { globalModalsLogic } from '../GlobalModals'
 
@@ -27,7 +26,6 @@ export function ProjectName({ team }: { team: TeamBasicType }): JSX.Element {
 export function ProjectSwitcherOverlay({ onClickInside }: { onClickInside?: () => void }): JSX.Element {
     const { currentOrganization, projectCreationForbiddenReason } = useValues(organizationLogic)
     const { currentTeam } = useValues(teamLogic)
-    const { guardAvailableFeature } = useActions(sceneLogic)
     const { showCreateProjectModal } = useActions(globalModalsLogic)
 
     return (
@@ -48,12 +46,7 @@ export function ProjectSwitcherOverlay({ onClickInside }: { onClickInside?: () =
                 tooltip={projectCreationForbiddenReason}
                 onClick={() => {
                     onClickInside?.()
-                    guardAvailableFeature(
-                        AvailableFeature.ORGANIZATIONS_PROJECTS,
-                        showCreateProjectModal,
-                        undefined,
-                        currentOrganization?.teams?.length
-                    )
+                    showCreateProjectModal()
                 }}
             >
                 New project

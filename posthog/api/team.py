@@ -18,7 +18,6 @@ from posthog.api.geoip import get_geoip_properties
 from posthog.api.routing import TeamAndOrgViewSetMixin
 
 from posthog.api.shared import TeamBasicSerializer
-from posthog.constants import AvailableFeature
 from posthog.event_usage import report_user_action
 from posthog.models import InsightCachingState, Team, User
 from posthog.models.activity_logging.activity_log import (
@@ -38,13 +37,11 @@ from posthog.models.team.team import groups_on_events_querying_enabled, set_team
 from posthog.models.team.util import delete_batch_exports, delete_bulky_postgres_data
 from posthog.models.utils import generate_random_token_project, UUIDT
 from posthog.permissions import (
-    CREATE_METHODS,
     APIScopePermission,
     OrganizationAdminWritePermissions,
     OrganizationMemberPermissions,
     TeamMemberLightManagementPermission,
     TeamMemberStrictManagementPermission,
-    get_organization_from_view,
 )
 from posthog.tasks.demo_create_data import create_data_for_demo_team
 from posthog.user_permissions import UserPermissions, UserPermissionsSerializerMixin
@@ -57,30 +54,7 @@ class PremiumMultiProjectPermissions(BasePermission):
     message = "You must upgrade your PostHog plan to be able to create and manage multiple projects."
 
     def has_permission(self, request: request.Request, view) -> bool:
-        if request.method in CREATE_METHODS:
-            try:
-                organization = get_organization_from_view(view)
-            except ValueError:
-                return False
-
-            if not request.data.get("is_demo"):
-                # if we're not requesting to make a demo project
-                # and if the org already has more than 1 non-demo project (need to be able to make the initial project)
-                # and the org isn't allowed to make multiple projects
-                if organization.teams.exclude(is_demo=True).count() >= 1 and not organization.is_feature_available(
-                    AvailableFeature.ORGANIZATIONS_PROJECTS
-                ):
-                    return False
-            else:
-                # if we ARE requesting to make a demo project
-                # but the org already has a demo project
-                if organization.teams.filter(is_demo=True).count() > 0:
-                    return False
-
-            # in any other case, we're good to go
-            return True
-        else:
-            return True
+        return True
 
 
 class CachingTeamSerializer(serializers.ModelSerializer):
