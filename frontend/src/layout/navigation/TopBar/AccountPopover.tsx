@@ -224,7 +224,7 @@ export function AccountPopoverOverlay(): JSX.Element {
                             index={i + 2}
                         />
                     ))}
-                    {preflight?.can_create_org && <NewOrganizationButton />}
+                    {preflight?.can_create_org || <NewOrganizationButton />}
                 </AccountPopoverSection>
             )}
             <AccountPopoverSection>

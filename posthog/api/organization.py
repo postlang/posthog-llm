@@ -9,8 +9,7 @@ from rest_framework.request import Request
 from posthog import settings
 from posthog.api.routing import TeamAndOrgViewSetMixin
 from posthog.api.shared import TeamBasicSerializer
-from posthog.cloud_utils import is_cloud
-from posthog.constants import INTERNAL_BOT_EMAIL_SUFFIX, AvailableFeature
+from posthog.constants import INTERNAL_BOT_EMAIL_SUFFIX
 from posthog.event_usage import report_organization_deleted
 from posthog.models import Organization, User
 from posthog.models.async_deletion import AsyncDeletion, DeletionType
@@ -18,7 +17,6 @@ from posthog.models.organization import OrganizationMembership
 from posthog.models.signals import mute_selected_signals
 from posthog.models.team.util import delete_bulky_postgres_data
 from posthog.permissions import (
-    CREATE_METHODS,
     APIScopePermission,
     OrganizationAdminWritePermissions,
     extract_organization,
@@ -32,18 +30,6 @@ class PremiumMultiorganizationPermissions(permissions.BasePermission):
     message = "You must upgrade your PostHog plan to be able to create and manage multiple organizations."
 
     def has_permission(self, request: Request, view) -> bool:
-        user = cast(User, request.user)
-        if (
-            # Make multiple orgs only premium on self-hosted, since enforcement of this wouldn't make sense on Cloud
-            not is_cloud()
-            and request.method in CREATE_METHODS
-            and (
-                user.organization is None
-                or not user.organization.is_feature_available(AvailableFeature.ORGANIZATIONS_PROJECTS)
-            )
-            and user.organizations.count() >= 1
-        ):
-            return False
         return True
 
 

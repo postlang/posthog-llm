@@ -7,13 +7,11 @@ import { Lettermark } from 'lib/lemon-ui/Lettermark'
 import { membershipLevelToName } from 'lib/utils/permissioning'
 import { organizationLogic } from 'scenes/organizationLogic'
 import { preflightLogic } from 'scenes/PreflightCheck/preflightLogic'
-import { sceneLogic } from 'scenes/sceneLogic'
 import { userLogic } from 'scenes/userLogic'
 
-import { AvailableFeature, OrganizationBasicType } from '~/types'
+import { OrganizationBasicType } from '~/types'
 
 import { globalModalsLogic } from '../GlobalModals'
-import { navigationLogic } from './navigationLogic'
 
 export function AccessLevelIndicator({ organization }: { organization: OrganizationBasicType }): JSX.Element {
     return (
@@ -46,28 +44,10 @@ export function OtherOrganizationButton({
 }
 
 export function NewOrganizationButton(): JSX.Element {
-    const { closeAccountPopover } = useActions(navigationLogic)
     const { showCreateOrganizationModal } = useActions(globalModalsLogic)
-    const { guardAvailableFeature } = useActions(sceneLogic)
 
     return (
-        <LemonButton
-            icon={<IconPlus />}
-            onClick={() =>
-                guardAvailableFeature(
-                    AvailableFeature.ORGANIZATIONS_PROJECTS,
-                    () => {
-                        closeAccountPopover()
-                        showCreateOrganizationModal()
-                    },
-                    {
-                        cloud: false,
-                        selfHosted: true,
-                    }
-                )
-            }
-            fullWidth
-        >
+        <LemonButton icon={<IconPlus />} onClick={() => showCreateOrganizationModal()} fullWidth>
             New organization
         </LemonButton>
     )
