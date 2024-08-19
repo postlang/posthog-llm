@@ -16,11 +16,7 @@ class TaggedItemSerializerMixin(serializers.Serializer):
     tags = serializers.ListField(required=False)
 
     def _is_licensed(self):
-        return (
-            "request" in self.context
-            and not self.context["request"].user.is_anonymous
-            and self.context["request"].user.organization.is_feature_available(AvailableFeature.TAGGING)
-        )
+        return "request" in self.context and not self.context["request"].user.is_anonymous
 
     def _attempt_set_tags(self, tags, obj, force_create=False):
         if not force_create and not self._is_licensed() and tags is not None:

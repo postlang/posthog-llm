@@ -26,7 +26,7 @@ import { userLogic } from 'scenes/userLogic'
 import { dashboardsModel } from '~/models/dashboardsModel'
 import { notebooksModel } from '~/models/notebooksModel'
 import { tagsModel } from '~/models/tagsModel'
-import { AvailableFeature, DashboardMode, DashboardType, ExporterFormat } from '~/types'
+import { DashboardMode, DashboardType, ExporterFormat } from '~/types'
 
 import { DASHBOARD_RESTRICTION_OPTIONS } from './DashboardCollaborators'
 import { dashboardCollaboratorsLogic } from './dashboardCollaboratorsLogic'
@@ -53,10 +53,9 @@ export function DashboardHeader(): JSX.Element | null {
     const { asDashboardTemplate } = useValues(dashboardLogic)
     const { updateDashboard, pinDashboard, unpinDashboard } = useActions(dashboardsModel)
     const { createNotebookFromDashboard } = useActions(notebooksModel)
+    const { user } = useValues(userLogic)
 
     const { setDashboardTemplate, openDashboardTemplateEditor } = useActions(dashboardTemplateEditorLogic)
-
-    const { hasAvailableFeature, user } = useValues(userLogic)
 
     const { showDuplicateDashboardModal } = useActions(duplicateDashboardLogic)
     const { showDeleteDashboardModal } = useActions(deleteDashboardLogic)
@@ -316,7 +315,6 @@ export function DashboardHeader(): JSX.Element | null {
                                 saveOnBlur={true}
                                 compactButtons
                                 mode={!canEditDashboard ? 'view' : undefined}
-                                paywall={!hasAvailableFeature(AvailableFeature.TEAM_COLLABORATION)}
                             />
                         )}
                         {dashboard?.tags && (

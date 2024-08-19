@@ -17,12 +17,11 @@ import { definitionLogic, DefinitionLogicProps } from 'scenes/data-management/de
 import { EventDefinitionProperties } from 'scenes/data-management/events/EventDefinitionProperties'
 import { SceneExport } from 'scenes/sceneTypes'
 import { urls } from 'scenes/urls'
-import { userLogic } from 'scenes/userLogic'
 
 import { defaultDataTableColumns } from '~/queries/nodes/DataTable/utils'
 import { Query } from '~/queries/Query/Query'
 import { NodeKind } from '~/queries/schema'
-import { AvailableFeature, PropertyDefinition } from '~/types'
+import { PropertyDefinition } from '~/types'
 
 export const scene: SceneExport = {
     component: DefinitionView,
@@ -37,7 +36,6 @@ export function DefinitionView(props: DefinitionLogicProps = {}): JSX.Element {
     const { definition, definitionLoading, definitionMissing, hasTaxonomyFeatures, singular, isEvent, isProperty } =
         useValues(logic)
     const { deleteDefinition } = useActions(logic)
-    const { hasAvailableFeature } = useValues(userLogic)
 
     if (definitionLoading) {
         return <SpinnerOverlay sceneLevel />
@@ -146,7 +144,6 @@ export function DefinitionView(props: DefinitionLogicProps = {}): JSX.Element {
                     className="definition-description"
                     compactButtons
                     maxLength={600}
-                    paywall={!hasAvailableFeature(AvailableFeature.INGESTION_TAXONOMY)}
                 />
 
                 <ObjectTags

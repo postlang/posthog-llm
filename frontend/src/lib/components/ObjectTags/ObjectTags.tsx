@@ -9,9 +9,6 @@ import { objectTagsLogic } from 'lib/components/ObjectTags/objectTagsLogic'
 import { Spinner } from 'lib/lemon-ui/Spinner/Spinner'
 import { colorForString } from 'lib/utils'
 import { CSSProperties, useMemo } from 'react'
-import { sceneLogic } from 'scenes/sceneLogic'
-
-import { AvailableFeature } from '~/types'
 
 import { SelectGradientOverflow } from '../SelectGradientOverflow'
 
@@ -61,7 +58,6 @@ export function ObjectTags({
 }: ObjectTagsProps): JSX.Element {
     const objectTagId = useMemo(() => uniqueMemoizedIndex++, [])
     const logic = objectTagsLogic({ id: objectTagId, onChange, tags })
-    const { guardAvailableFeature } = useActions(sceneLogic)
     const { addingNewTag, cleanedNewTag, deletedTags } = useValues(logic)
     const { setAddingNewTag, setNewTag, handleDelete, handleAdd } = useActions(logic)
 
@@ -69,12 +65,6 @@ export function ObjectTags({
     const showPlaceholder = staticOnly && !tags?.length
     if (showPlaceholder && !style.color) {
         style.color = 'var(--muted)'
-    }
-
-    const onGuardClick = (callback: () => void): void => {
-        guardAvailableFeature(AvailableFeature.TAGGING, () => {
-            callback()
-        })
     }
 
     return (
@@ -100,11 +90,7 @@ export function ObjectTags({
                                           <CloseOutlined
                                               className="click-outside-block"
                                               style={{ cursor: 'pointer' }}
-                                              onClick={() =>
-                                                  onGuardClick(() => {
-                                                      handleDelete(tag)
-                                                  })
-                                              }
+                                              onClick={() => handleDelete(tag)}
                                           />
                                       ))}
                               </LemonTag>
@@ -115,11 +101,7 @@ export function ObjectTags({
                 <span className="inline-flex font-normal">
                     <LemonTag
                         type="none"
-                        onClick={() =>
-                            onGuardClick(() => {
-                                setAddingNewTag(true)
-                            })
-                        }
+                        onClick={() => setAddingNewTag(true)}
                         data-attr="button-add-tag"
                         icon={<IconPlus />}
                         className="border border-dashed"
