@@ -74,7 +74,7 @@ export interface ImportApp extends PluginBasedStepBase {
 
 // Final
 
-export type PipelineNode = Filter | Transformation | Destination | SiteApp | ImportApp
+export type PipelineNode = Filter | Transformation | SiteApp | ImportApp
 
 // Utils
 

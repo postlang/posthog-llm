@@ -12,9 +12,6 @@ import { QuerySchema, QueryStatus } from '~/queries/schema'
 import {
     ActionType,
     ActivityScope,
-    BatchExportConfiguration,
-    BatchExportLogEntry,
-    BatchExportRun,
     CohortType,
     CommentType,
     DashboardCollaboratorType,
@@ -691,39 +688,6 @@ class ApiRequest {
 
     public notebook(id: NotebookType['short_id'], teamId?: TeamType['id']): ApiRequest {
         return this.notebooks(teamId).addPathComponent(id)
-    }
-
-    // Batch Exports
-    public batchExports(teamId?: TeamType['id']): ApiRequest {
-        return this.projectsDetail(teamId).addPathComponent('batch_exports')
-    }
-
-    public batchExport(id: BatchExportConfiguration['id'], teamId?: TeamType['id']): ApiRequest {
-        return this.batchExports(teamId).addPathComponent(id)
-    }
-
-    public batchExportLogs(id: BatchExportConfiguration['id'], teamId?: TeamType['id']): ApiRequest {
-        return this.batchExport(id, teamId).addPathComponent('logs')
-    }
-
-    public batchExportRuns(id: BatchExportConfiguration['id'], teamId?: TeamType['id']): ApiRequest {
-        return this.batchExports(teamId).addPathComponent(id).addPathComponent('runs')
-    }
-
-    public batchExportRun(
-        id: BatchExportConfiguration['id'],
-        runId: BatchExportRun['id'],
-        teamId?: TeamType['id']
-    ): ApiRequest {
-        return this.batchExportRuns(id, teamId).addPathComponent(runId)
-    }
-
-    public batchExportRunLogs(
-        id: BatchExportConfiguration['id'],
-        runId: BatchExportRun['id'],
-        teamId?: TeamType['id']
-    ): ApiRequest {
-        return this.batchExportRun(id, runId, teamId).addPathComponent('logs')
     }
 
     // External Data Source
@@ -1520,61 +1484,6 @@ const api = {
         },
     },
 
-    batchExportLogs: {
-        async search(
-            batchExportId: string,
-            searchTerm: string | null = null,
-            typeFilters: CheckboxValueType[] = [],
-            trailingEntry: BatchExportLogEntry | null = null,
-            leadingEntry: BatchExportLogEntry | null = null
-        ): Promise<BatchExportLogEntry[]> {
-            const params = toParams(
-                {
-                    limit: LOGS_PORTION_LIMIT,
-                    level_filter: typeFilters,
-                    search: searchTerm || undefined,
-                    before: trailingEntry?.timestamp,
-                    after: leadingEntry?.timestamp,
-                },
-                true
-            )
-
-            const response = await new ApiRequest().batchExportLogs(batchExportId).withQueryString(params).get()
-
-            return response.results
-        },
-    },
-
-    batchExportRunLogs: {
-        async search(
-            batchExportId: string,
-            batchExportRunId: string,
-            currentTeamId: number | null,
-            searchTerm: string | null = null,
-            typeFilters: CheckboxValueType[] = [],
-            trailingEntry: BatchExportLogEntry | null = null,
-            leadingEntry: BatchExportLogEntry | null = null
-        ): Promise<BatchExportLogEntry[]> {
-            const params = toParams(
-                {
-                    limit: LOGS_PORTION_LIMIT,
-                    type_filter: typeFilters,
-                    search: searchTerm || undefined,
-                    before: trailingEntry?.timestamp,
-                    after: leadingEntry?.timestamp,
-                },
-                true
-            )
-
-            const response = await new ApiRequest()
-                .batchExportRunLogs(batchExportId, batchExportRunId, currentTeamId || undefined)
-                .withQueryString(params)
-                .get()
-
-            return response.results
-        },
-    },
-
     annotations: {
         async get(annotationId: RawAnnotationType['id']): Promise<RawAnnotationType> {
             return await new ApiRequest().annotation(annotationId).get()
@@ -1777,49 +1686,6 @@ const api = {
         },
         async delete(notebookId: NotebookType['short_id']): Promise<NotebookType> {
             return await new ApiRequest().notebook(notebookId).delete()
-        },
-    },
-
-    batchExports: {
-        async list(params: Record<string, any> = {}): Promise<CountedPaginatedResponse<BatchExportConfiguration>> {
-            return await new ApiRequest().batchExports().withQueryString(toParams(params)).get()
-        },
-        async get(id: BatchExportConfiguration['id']): Promise<BatchExportConfiguration> {
-            return await new ApiRequest().batchExport(id).get()
-        },
-        async update(
-            id: BatchExportConfiguration['id'],
-            data: Partial<BatchExportConfiguration>
-        ): Promise<BatchExportConfiguration> {
-            return await new ApiRequest().batchExport(id).update({ data })
-        },
-
-        async create(data?: Partial<BatchExportConfiguration>): Promise<BatchExportConfiguration> {
-            return await new ApiRequest().batchExports().create({ data })
-        },
-        async delete(id: BatchExportConfiguration['id']): Promise<BatchExportConfiguration> {
-            return await new ApiRequest().batchExport(id).delete()
-        },
-
-        async pause(id: BatchExportConfiguration['id']): Promise<BatchExportConfiguration> {
-            return await new ApiRequest().batchExport(id).withAction('pause').create()
-        },
-
-        async unpause(id: BatchExportConfiguration['id']): Promise<BatchExportConfiguration> {
-            return await new ApiRequest().batchExport(id).withAction('unpause').create()
-        },
-
-        async listRuns(
-            id: BatchExportConfiguration['id'],
-            params: Record<string, any> = {}
-        ): Promise<PaginatedResponse<BatchExportRun>> {
-            return await new ApiRequest().batchExportRuns(id).withQueryString(toParams(params)).get()
-        },
-        async createBackfill(
-            id: BatchExportConfiguration['id'],
-            data: Pick<BatchExportConfiguration, 'start_at' | 'end_at'>
-        ): Promise<BatchExportRun> {
-            return await new ApiRequest().batchExport(id).withAction('backfill').create({ data })
         },
     },
 

@@ -20,11 +20,7 @@ export const pipelineOverviewLogic = kea<pipelineOverviewLogicType>([
             pipelineTransformationsLogic,
             ['loadPlugins as loadTransformationPlugins', 'loadPluginConfigs as loadTransformationPluginConfigs'],
             pipelineDestinationsLogic,
-            [
-                'loadPlugins as loadDestinationPlugins',
-                'loadPluginConfigs as loadDestinationPluginConfigs',
-                'loadBatchExports as loadBatchExportConfigs',
-            ],
+            ['loadPlugins as loadDestinationPlugins', 'loadPluginConfigs as loadDestinationPluginConfigs'],
         ],
     }),
 ])

@@ -1,12 +1,38 @@
 import datetime as dt
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, field_validator
 
 from posthog.models.utils import UUIDT
 from posthog.warehouse.external_data_source.client import send_request
+from rest_framework.exceptions import (
+    ValidationError,
+)
 
 AIRBYTE_SOURCE_URL = "https://api.airbyte.com/v1/sources"
+
+
+def validate_date_input(date_input: Any) -> dt.datetime:
+    """Parse any datetime input as a proper dt.datetime.
+
+    Args:
+        date_input: The datetime input to parse.
+
+    Raises:
+        ValidationError: If the input cannot be parsed.
+
+    Returns:
+        The parsed dt.datetime.
+    """
+    try:
+        # The Right Way (TM) to check this would be by calling isinstance, but that doesn't feel very Pythonic.
+        # As far as I'm concerned, if you give me something that quacks like an isoformatted str, you are golden.
+        # Read more here: https://github.com/python/mypy/issues/2420.
+        # Once PostHog is 3.11, try/except is zero cost if nothing is raised: https://bugs.python.org/issue40222.
+        parsed = dt.datetime.fromisoformat(date_input.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        raise ValidationError(f"Input {date_input} is not a valid ISO formatted datetime.")
+    return parsed
 
 
 class StripeSourcePayload(BaseModel):
@@ -28,8 +54,6 @@ class StripeSourcePayload(BaseModel):
     @field_validator("start_date")
     @classmethod
     def valid_iso_start_date(cls, v: Optional[str]) -> Optional[str]:
-        from posthog.batch_exports.http import validate_date_input
-
         if not v:
             return v
 

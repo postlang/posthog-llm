@@ -1,8 +1,6 @@
 from datetime import timedelta
 from typing import Any, List
 
-from posthog.temporal.common.client import sync_connect
-from posthog.batch_exports.service import batch_export_delete_schedule
 from posthog.cache_utils import cache_for
 from posthog.models.async_migration import is_async_migration_complete
 
@@ -27,24 +25,6 @@ def delete_bulky_postgres_data(team_ids: List[int]):
 def _raw_delete(queryset: Any):
     "Issues a single DELETE statement for the queryset"
     queryset._raw_delete(queryset.db)
-
-
-def delete_batch_exports(team_ids: List[int]):
-    """Delete BatchExports for deleted teams.
-
-    Using normal CASCADE doesn't trigger a delete from Temporal.
-    """
-    from posthog.batch_exports.models import BatchExport
-
-    temporal = sync_connect()
-
-    for batch_export in BatchExport.objects.filter(team_id__in=team_ids):
-        schedule_id = batch_export.id
-
-        batch_export.delete()
-        batch_export.destination.delete()
-
-        batch_export_delete_schedule(temporal, str(schedule_id))
 
 
 can_enable_actor_on_events = False

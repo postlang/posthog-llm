@@ -4,7 +4,6 @@ import { loaders } from 'kea-loaders'
 import { actionToUrl, urlToAction } from 'kea-router'
 import api from 'lib/api'
 import { capitalizeFirstLetter } from 'lib/utils'
-import { batchExportFormFields } from 'scenes/batch_exports/batchExportEditLogic'
 import { Scene } from 'scenes/sceneTypes'
 import { urls } from 'scenes/urls'
 
@@ -18,13 +17,7 @@ import {
     getPluginConfigFormData,
 } from './configUtils'
 import type { pipelineNodeLogicType } from './pipelineNodeLogicType'
-import {
-    BatchExportBasedStep,
-    convertToPipelineNode,
-    PipelineBackend,
-    PipelineNode,
-    PluginBasedStepBase,
-} from './types'
+import { convertToPipelineNode, PipelineBackend, PipelineNode, PluginBasedStepBase } from './types'
 
 export interface PipelineNodeLogicProps {
     id: number | string
@@ -33,10 +26,6 @@ export interface PipelineNodeLogicProps {
 }
 
 export type PluginUpdatePayload = Pick<PluginBasedStepBase, 'name' | 'description' | 'enabled' | 'config'>
-export type BatchExportUpdatePayload = Pick<
-    BatchExportBasedStep,
-    'name' | 'description' | 'enabled' | 'service' | 'interval'
->
 
 export const pipelineNodeLogic = kea<pipelineNodeLogicType>([
     props({} as PipelineNodeLogicProps),
@@ -45,7 +34,7 @@ export const pipelineNodeLogic = kea<pipelineNodeLogicType>([
     actions({
         setCurrentTab: (tab: PipelineNodeTab = PipelineNodeTab.Configuration) => ({ tab }),
         loadNode: true,
-        updateNode: (payload: PluginUpdatePayload | BatchExportUpdatePayload) => ({
+        updateNode: (payload: PluginUpdatePayload) => ({
             payload,
         }),
     }),
@@ -67,16 +56,8 @@ export const pipelineNodeLogic = kea<pipelineNodeLogicType>([
                     }
                     let node: PipelineNode | null = null
                     try {
-                        if (typeof props.id === 'string') {
-                            if (props.stage !== PipelineStage.Destination) {
-                                return null
-                            }
-                            const batchExport = await api.batchExports.get(props.id)
-                            node = convertToPipelineNode(batchExport, props.stage)
-                        } else {
-                            const pluginConfig = await api.pluginConfigs.get(props.id)
-                            node = convertToPipelineNode(pluginConfig, props.stage)
-                        }
+                        const pluginConfig = await api.pluginConfigs.get(props.id)
+                        node = convertToPipelineNode(pluginConfig, props.stage)
                     } catch (e: any) {
                         if (e.status === 404) {
                             return null
@@ -89,41 +70,24 @@ export const pipelineNodeLogic = kea<pipelineNodeLogicType>([
                     if (!values.node) {
                         return null
                     }
-                    if (values.node.backend === PipelineBackend.BatchExport) {
-                        payload = payload as BatchExportUpdatePayload
-                        const batchExport = await api.batchExports.update(props.id as string, {
-                            paused: !payload.enabled,
-                            name: payload.name,
-                            interval: payload.interval,
-                            destination: payload.service,
-                        })
-                        return convertToPipelineNode(batchExport, values.node.stage)
-                    } else {
-                        payload = payload as PluginUpdatePayload
-                        const pluginConfig = await api.pluginConfigs.update(
-                            props.id as number,
-                            getPluginConfigFormData(values.node.plugin.config_schema, values.node.config, payload)
-                        )
-                        return convertToPipelineNode(pluginConfig, values.node.stage)
-                    }
+
+                    payload = payload as PluginUpdatePayload
+                    const pluginConfig = await api.pluginConfigs.update(
+                        props.id as number,
+                        getPluginConfigFormData(values.node.plugin.config_schema, values.node.config, payload)
+                    )
+                    return convertToPipelineNode(pluginConfig, values.node.stage)
                 },
             },
         ],
     })),
-    forms(({ props, values, asyncActions }) => ({
+    forms(({ values, asyncActions }) => ({
         configuration: {
             defaults: {} as Record<string, any>,
             errors: (form) => {
-                if (values.nodeBackend === PipelineBackend.BatchExport) {
-                    return batchExportFormFields(props.id === 'new', form as any, { isPipeline: true })
-                } else {
-                    return Object.fromEntries(
-                        values.requiredFields.map((field) => [
-                            field,
-                            form[field] ? undefined : 'This field is required',
-                        ])
-                    )
-                }
+                return Object.fromEntries(
+                    values.requiredFields.map((field) => [field, form[field] ? undefined : 'This field is required'])
+                )
             },
             submit: async (formValues) => {
                 // @ts-expect-error - Sadly Kea logics can't be generic based on props, so TS complains here

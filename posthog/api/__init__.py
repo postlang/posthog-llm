@@ -1,7 +1,6 @@
 from rest_framework import decorators, exceptions
 
 from posthog.api.routing import DefaultRouterPlusPlus
-from posthog.batch_exports import http as batch_exports
 from posthog.settings import EE_AVAILABLE
 from posthog.warehouse.api import external_data_source, saved_query, table, view_link, external_data_schema
 from ..session_recordings.session_recording_api import SessionRecordingViewSet
@@ -162,26 +161,6 @@ app_metrics_router.register(
     ["team_id", "plugin_config_id"],
 )
 
-batch_exports_router = projects_router.register(
-    r"batch_exports", batch_exports.BatchExportViewSet, "batch_exports", ["team_id"]
-)
-batch_export_runs_router = batch_exports_router.register(
-    r"runs", batch_exports.BatchExportRunViewSet, "runs", ["team_id", "batch_export_id"]
-)
-batch_exports_router.register(
-    r"logs",
-    batch_exports.BatchExportLogViewSet,
-    "batch_export_run_logs",
-    ["team_id", "batch_export_id"],
-)
-
-batch_export_runs_router.register(
-    r"logs",
-    batch_exports.BatchExportLogViewSet,
-    "batch_export_logs",
-    ["team_id", "batch_export_id", "run_id"],
-)
-
 projects_router.register(r"warehouse_tables", table.TableViewSet, "project_warehouse_tables", ["team_id"])
 projects_router.register(
     r"warehouse_saved_queries",
@@ -201,9 +180,7 @@ projects_router.register(r"warehouse_view_link", view_link.ViewLinkViewSet, "war
 # Organizations nested endpoints
 organizations_router = router.register(r"organizations", organization.OrganizationViewSet, "organizations")
 organizations_router.register(r"projects", team.TeamViewSet, "projects", ["organization_id"])
-organizations_router.register(
-    r"batch_exports", batch_exports.BatchExportOrganizationViewSet, "batch_exports", ["organization_id"]
-)
+
 organization_plugins_router = organizations_router.register(
     r"plugins", plugin.PluginViewSet, "organization_plugins", ["organization_id"]
 )

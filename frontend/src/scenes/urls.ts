@@ -1,5 +1,4 @@
 import { combineUrl } from 'kea-router'
-import { toParams } from 'lib/utils'
 
 import { ExportOptions } from '~/exporter/types'
 import { HogQLFilters } from '~/queries/schema'
@@ -64,11 +63,6 @@ export const urls = {
     events: (): string => '/events',
     event: (id: string, timestamp: string): string =>
         `/events/${encodeURIComponent(id)}/${encodeURIComponent(timestamp)}`,
-    batchExports: (): string => '/batch_exports',
-    batchExportNew: (): string => `/batch_exports/new`,
-    batchExport: (id: string, params?: { runId?: string }): string =>
-        `/batch_exports/${id}` + (params ? `?${toParams(params)}` : ''),
-    batchExportEdit: (id: string): string => `/batch_exports/${id}/edit`,
     ingestionWarnings: (): string => '/data-management/ingestion-warnings',
     insights: (): string => '/insights',
     insightNew: (

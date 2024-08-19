@@ -444,7 +444,6 @@ export const redirects: Record<
         return urls.replay()
     },
     '/replay': urls.replay(),
-    '/exports': urls.batchExports(),
     '/settings': urls.settings(),
     '/project/settings': urls.settings('project'),
     '/organization/settings': urls.settings('organization'),
@@ -478,10 +477,6 @@ export const routes: Record<string, Scene> = {
     [urls.eventDefinitions()]: Scene.DataManagement,
     [urls.eventDefinition(':id')]: Scene.EventDefinition,
     [urls.eventDefinitionEdit(':id')]: Scene.EventDefinitionEdit,
-    [urls.batchExports()]: Scene.BatchExports,
-    [urls.batchExportNew()]: Scene.BatchExportEdit,
-    [urls.batchExport(':id')]: Scene.BatchExport,
-    [urls.batchExportEdit(':id')]: Scene.BatchExportEdit,
     [urls.propertyDefinitions()]: Scene.DataManagement,
     [urls.propertyDefinition(':id')]: Scene.PropertyDefinition,
     [urls.propertyDefinitionEdit(':id')]: Scene.PropertyDefinitionEdit,

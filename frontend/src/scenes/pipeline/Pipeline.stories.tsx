@@ -9,7 +9,6 @@ import { mswDecorator, useStorybookMocks } from '~/mocks/browser'
 import { MockSignature } from '~/mocks/utils'
 import { PipelineNodeTab, PipelineStage, PipelineTab } from '~/types'
 
-import batchExports from './__mocks__/batchExports.json'
 import pluginConfigs from './__mocks__/pluginConfigs.json'
 import plugins from './__mocks__/plugins.json'
 import { appsManagementLogic } from './appsManagementLogic'
@@ -31,8 +30,6 @@ export default {
         // mocks used by all stories in this file
         mswDecorator({
             get: {
-                '/api/projects/:team_id/batch_exports/': batchExports,
-                '/api/organizations/:organization_id/batch_exports/': batchExports,
                 '/api/organizations/:organization_id/plugins/': plugins,
                 '/api/projects/:team_id/plugin_configs/': pluginConfigs,
                 '/api/projects/:team_id/plugin_configs/:id': pluginConfigRetrieveMock,
@@ -163,20 +160,6 @@ export function PipelineNodeLogs(): JSX.Element {
     })
     useEffect(() => {
         router.actions.push(urls.pipelineNode(PipelineStage.Transformation, geoIpConfigId, PipelineNodeTab.Logs))
-    }, [])
-    return <App />
-}
-
-export function PipelineNodeLogsBatchExport(): JSX.Element {
-    useStorybookMocks({
-        get: {
-            '/api/projects/:team_id/batch_exports/:export_id/logs': require('./__mocks__/batchExportLogs.json'),
-        },
-    })
-    useEffect(() => {
-        router.actions.push(
-            urls.pipelineNode(PipelineStage.Transformation, batchExports.results[0].id, PipelineNodeTab.Logs)
-        )
     }, [])
     return <App />
 }

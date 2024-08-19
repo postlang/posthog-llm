@@ -5,19 +5,12 @@ import api from 'lib/api'
 import { teamLogic } from 'scenes/teamLogic'
 import { userLogic } from 'scenes/userLogic'
 
-import {
-    BatchExportConfiguration,
-    PipelineStage,
-    PluginConfigTypeNew,
-    PluginConfigWithPluginInfoNew,
-    PluginType,
-    ProductKey,
-} from '~/types'
+import { PipelineStage, PluginConfigTypeNew, PluginConfigWithPluginInfoNew, PluginType, ProductKey } from '~/types'
 
 import type { pipelineDestinationsLogicType } from './destinationsLogicType'
 import { pipelineLogic } from './pipelineLogic'
 import { convertToPipelineNode, Destination } from './types'
-import { captureBatchExportEvent, capturePluginEvent } from './utils'
+import { capturePluginEvent } from './utils'
 
 export const pipelineDestinationsLogic = kea<pipelineDestinationsLogicType>([
     path(['scenes', 'pipeline', 'destinationsLogic']),
@@ -64,9 +57,6 @@ export const pipelineDestinationsLogic = kea<pipelineDestinationsLogicType>([
                     return pluginConfigs
                 },
                 toggleEnabledWebhook: async ({ destination, enabled }) => {
-                    if (destination.type === 'batch_export') {
-                        return values.pluginConfigs
-                    }
                     if (!values.canConfigurePlugins) {
                         return values.pluginConfigs
                     }
@@ -81,45 +71,21 @@ export const pipelineDestinationsLogic = kea<pipelineDestinationsLogicType>([
                 },
             },
         ],
-        batchExportConfigs: [
-            {} as Record<string, BatchExportConfiguration>,
-            {
-                loadBatchExports: async () => {
-                    const results = await api.loadPaginatedResults<BatchExportConfiguration>(
-                        `api/projects/${values.currentTeamId}/batch_exports`
-                    )
-                    return Object.fromEntries(results.map((batchExport) => [batchExport.id, batchExport]))
-                },
-                toggleEnabledBatchExport: async ({ destination, enabled }) => {
-                    const batchExport = values.batchExportConfigs[destination.id]
-                    if (enabled) {
-                        await api.batchExports.pause(destination.id)
-                    } else {
-                        await api.batchExports.unpause(destination.id)
-                    }
-                    captureBatchExportEvent(`batch export ${enabled ? 'enabled' : 'disabled'}`, batchExport)
-                    return { ...values.batchExportConfigs, [destination.id]: { ...batchExport, paused: !enabled } }
-                },
-            },
-        ],
     })),
     selectors({
         loading: [
-            (s) => [s.pluginsLoading, s.pluginConfigsLoading, s.batchExportConfigsLoading],
-            (pluginsLoading, pluginConfigsLoading, batchExportConfigsLoading) =>
-                pluginsLoading || pluginConfigsLoading || batchExportConfigsLoading,
+            (s) => [s.pluginsLoading, s.pluginConfigsLoading],
+            (pluginsLoading, pluginConfigsLoading) => pluginsLoading || pluginConfigsLoading,
         ],
         destinations: [
-            (s) => [s.pluginConfigs, s.plugins, s.batchExportConfigs],
-            (pluginConfigs, plugins, batchExportConfigs): Destination[] => {
-                const rawDestinations: (PluginConfigWithPluginInfoNew | BatchExportConfiguration)[] = Object.values(
+            (s) => [s.pluginConfigs, s.plugins],
+            (pluginConfigs, plugins): Destination[] => {
+                const rawDestinations: PluginConfigWithPluginInfoNew[] = Object.values(
                     pluginConfigs
-                )
-                    .map<PluginConfigWithPluginInfoNew | BatchExportConfiguration>((pluginConfig) => ({
-                        ...pluginConfig,
-                        plugin_info: plugins[pluginConfig.plugin] || null,
-                    }))
-                    .concat(Object.values(batchExportConfigs))
+                ).map<PluginConfigWithPluginInfoNew>((pluginConfig) => ({
+                    ...pluginConfig,
+                    plugin_info: plugins[pluginConfig.plugin] || null,
+                }))
                 const convertedDestinations = rawDestinations.map((d) =>
                     convertToPipelineNode(d, PipelineStage.Destination)
                 )
@@ -142,14 +108,11 @@ export const pipelineDestinationsLogic = kea<pipelineDestinationsLogicType>([
             }
             if (destination.backend === 'plugin') {
                 actions.toggleEnabledWebhook({ destination: destination, enabled: enabled })
-            } else {
-                actions.toggleEnabledBatchExport({ destination: destination, enabled: enabled })
             }
         },
     })),
     afterMount(({ actions }) => {
         actions.loadPlugins()
         actions.loadPluginConfigs()
-        actions.loadBatchExports()
     }),
 ])

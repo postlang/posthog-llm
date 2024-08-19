@@ -38,7 +38,6 @@ from posthog.settings.shell_plus import *
 from posthog.settings.service_requirements import *
 from posthog.settings.statsd import *
 from posthog.settings.object_storage import *
-from posthog.settings.temporal import *
 from posthog.settings.web import *
 from posthog.settings.data_warehouse import *
 from posthog.settings.session_replay import *

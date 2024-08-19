@@ -5,8 +5,6 @@ import { Form } from 'kea-forms'
 import { LemonField } from 'lib/lemon-ui/LemonField'
 import { LemonMarkdown } from 'lib/lemon-ui/LemonMarkdown'
 import React from 'react'
-import { BatchExportsEditFields } from 'scenes/batch_exports/BatchExportEditForm'
-import { BatchExportConfigurationForm } from 'scenes/batch_exports/batchExportEditLogic'
 import { getConfigSchemaArray, isValidField } from 'scenes/pipeline/configUtils'
 import { PluginField } from 'scenes/plugins/edit/PluginField'
 
@@ -32,10 +30,8 @@ export function PipelineNodeConfiguration(): JSX.Element {
             ) : isConfigurable ? (
                 <>
                     <Form logic={pipelineNodeLogic} formKey="configuration" className="space-y-3">
-                        {node.backend === PipelineBackend.Plugin ? (
+                        {node.backend === PipelineBackend.Plugin && (
                             <PluginConfigurationFields node={node} formValues={configuration} />
-                        ) : (
-                            <BatchExportConfigurationFields node={node} formValues={configuration} />
                         )}
                         <div className="flex gap-2">
                             <LemonButton
@@ -113,19 +109,4 @@ function PluginConfigurationFields({
     ))
 
     return <>{fields}</>
-}
-
-function BatchExportConfigurationFields({
-    formValues,
-}: {
-    node: PipelineNode & { backend: PipelineBackend.BatchExport }
-    formValues: Record<string, any>
-}): JSX.Element {
-    return (
-        <BatchExportsEditFields
-            isNew={false /* TODO */}
-            isPipeline
-            batchExportConfigForm={formValues as BatchExportConfigurationForm}
-        />
-    )
 }

@@ -6,24 +6,10 @@ import { Link } from 'lib/lemon-ui/Link'
 import { Tooltip } from 'lib/lemon-ui/Tooltip'
 import { deleteWithUndo } from 'lib/utils/deleteWithUndo'
 import posthog from 'posthog-js'
-import HTTPIcon from 'public/hedgehog/running-hog.png'
-import BigQueryIcon from 'public/pipeline/BigQuery.png'
-import PostgresIcon from 'public/pipeline/Postgres.png'
-import RedshiftIcon from 'public/pipeline/Redshift.svg'
-import S3Icon from 'public/pipeline/S3.png'
-import SnowflakeIcon from 'public/pipeline/Snowflake.png'
 import { PluginImage, PluginImageSize } from 'scenes/plugins/plugin/PluginImage'
 import { urls } from 'scenes/urls'
 
-import {
-    BatchExportConfiguration,
-    BatchExportDestination,
-    PipelineNodeTab,
-    PipelineStage,
-    PluginConfigTypeNew,
-    PluginLogEntryType,
-    PluginType,
-} from '~/types'
+import { PipelineNodeTab, PipelineStage, PluginConfigTypeNew, PluginLogEntryType, PluginType } from '~/types'
 
 import { PipelineLogLevel } from './pipelineNodeLogsLogic'
 import { pipelineTransformationsLogic } from './transformationsLogic'
@@ -86,13 +72,6 @@ export function capturePluginEvent(event: string, plugin: PluginType, pluginConf
         plugin_config_id: pluginConfig.id,
     })
 }
-export function captureBatchExportEvent(event: string, batchExport: BatchExportConfiguration): void {
-    posthog.capture(event, {
-        batch_export_id: batchExport.id,
-        batch_export_name: batchExport.name,
-        batch_export_destination_type: batchExport.destination.type,
-    })
-}
 
 const PAGINATION_DEFAULT_MAX_PAGES = 10
 export async function loadPaginatedResults(
@@ -146,25 +125,6 @@ export function RenderApp({ plugin, imageSize }: RenderAppProps): JSX.Element {
                     </span>
                 )}
             </Tooltip>
-        </div>
-    )
-}
-
-export function RenderBatchExportIcon({ type }: { type: BatchExportDestination['type'] }): JSX.Element {
-    const icon = {
-        BigQuery: BigQueryIcon,
-        Postgres: PostgresIcon,
-        Redshift: RedshiftIcon,
-        S3: S3Icon,
-        Snowflake: SnowflakeIcon,
-        HTTP: HTTPIcon,
-    }[type]
-
-    return (
-        <div className="flex items-center gap-4">
-            <Link to={`https://posthog.com/docs/cdp/batch-exports/${type.toLowerCase()}`} target="_blank">
-                <img src={icon} alt={type} height={60} width={60} />
-            </Link>
         </div>
     )
 }

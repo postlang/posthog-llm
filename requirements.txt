@@ -440,14 +440,6 @@ prompt-toolkit==3.0.39
     # via click-repl
 proto-plus==1.22.3
     # via google-cloud-bigquery
-protobuf==4.22.1
-    # via
-    #   google-api-core
-    #   google-cloud-bigquery
-    #   googleapis-common-protos
-    #   grpcio-status
-    #   proto-plus
-    #   temporalio
 psycopg==3.1.13
     # via -r requirements.in
 psycopg2-binary==2.9.7
@@ -636,8 +628,6 @@ structlog==23.2.0
     # via
     #   -r requirements.in
     #   django-structlog
-temporalio==1.4.0
-    # via -r requirements.in
 tenacity==8.2.3
     # via
     #   celery-redbeat
@@ -666,8 +656,6 @@ types-awscrt==0.16.17
     # via
     #   botocore-stubs
     #   types-s3transfer
-types-protobuf==4.22.0.0
-    # via temporalio
 types-s3transfer==0.6.1
     # via boto3-stubs
 types-setuptools==69.0.0.0

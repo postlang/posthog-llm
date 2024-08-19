@@ -35,7 +35,7 @@ from posthog.models.organization import OrganizationMembership
 from posthog.models.personal_api_key import APIScopeObjectOrNotSupported
 from posthog.models.signals import mute_selected_signals
 from posthog.models.team.team import groups_on_events_querying_enabled, set_team_in_cache
-from posthog.models.team.util import delete_batch_exports, delete_bulky_postgres_data
+from posthog.models.team.util import delete_bulky_postgres_data
 from posthog.models.utils import generate_random_token_project, UUIDT
 from posthog.permissions import (
     CREATE_METHODS,
@@ -466,7 +466,6 @@ class TeamViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
         user = cast(User, self.request.user)
 
         delete_bulky_postgres_data(team_ids=[team_id])
-        delete_batch_exports(team_ids=[team_id])
 
         with mute_selected_signals():
             super().perform_destroy(team)
