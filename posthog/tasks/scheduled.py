@@ -39,7 +39,6 @@ from posthog.tasks.tasks import (
     redis_heartbeat,
     schedule_all_subscriptions,
     schedule_cache_updates_task,
-    send_org_usage_reports,
     sync_all_organization_available_features,
     sync_insight_cache_states_task,
     update_event_partitions,
@@ -91,19 +90,6 @@ def setup_periodic_tasks(sender: Celery, **kwargs: Any) -> None:
     sender.add_periodic_task(
         crontab(day_of_week="mon,fri", hour="0", minute="0"),
         update_event_partitions.s(),  # check twice a week
-    )
-
-    # Send all instance usage to the Billing service
-    # Sends later on Sunday due to clickhouse things that happen on Sunday at ~00:00 UTC
-    sender.add_periodic_task(
-        crontab(hour="2", minute="15", day_of_week="mon"),
-        send_org_usage_reports.s(),
-        name="send instance usage report, monday",
-    )
-    sender.add_periodic_task(
-        crontab(hour="0", minute="15", day_of_week="tue,wed,thu,fri,sat,sun"),
-        send_org_usage_reports.s(),
-        name="send instance usage report",
     )
 
     # Update local usage info for rate limiting purposes - offset by 30 minutes to not clash with the above
