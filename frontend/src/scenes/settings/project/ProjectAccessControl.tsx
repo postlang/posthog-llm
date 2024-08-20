@@ -15,11 +15,10 @@ import {
     teamMembershipLevelIntegers,
 } from 'lib/utils/permissioning'
 import { organizationLogic } from 'scenes/organizationLogic'
-import { sceneLogic } from 'scenes/sceneLogic'
 import { isAuthenticatedTeam, teamLogic } from 'scenes/teamLogic'
 import { userLogic } from 'scenes/userLogic'
 
-import { AvailableFeature, FusedTeamMemberType } from '~/types'
+import { FusedTeamMemberType } from '~/types'
 
 import { AddMembersModalWithButton } from './AddMembersModal'
 import { MINIMUM_IMPLICIT_ACCESS_LEVEL, teamMembersLogic } from './teamMembersLogic'
@@ -208,7 +207,6 @@ export function ProjectAccessControl(): JSX.Element {
     const { currentOrganization, currentOrganizationLoading } = useValues(organizationLogic)
     const { currentTeam, currentTeamLoading } = useValues(teamLogic)
     const { updateCurrentTeam } = useActions(teamLogic)
-    const { guardAvailableFeature } = useActions(sceneLogic)
 
     const isRestricted = !!useRestrictedArea({
         minimumAccessLevel: OrganizationMembershipLevel.Admin,
@@ -241,11 +239,7 @@ export function ProjectAccessControl(): JSX.Element {
             <LemonSwitch
                 onChange={(checked) => {
                     // Let them uncheck it if it's already checked, but don't let them check it if they don't have the feature
-                    checked
-                        ? guardAvailableFeature(AvailableFeature.PROJECT_BASED_PERMISSIONING, () =>
-                              updateCurrentTeam({ access_control: checked })
-                          )
-                        : updateCurrentTeam({ access_control: checked })
+                    updateCurrentTeam({ access_control: checked })
                 }}
                 checked={!!currentTeam?.access_control}
                 disabled={
