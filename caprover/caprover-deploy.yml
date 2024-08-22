@@ -143,14 +143,15 @@ caproverOneClickApp:
         start: >-
             PostHog-LLM is a fork of PostHog with extensions to use PostHog as a LLM text analytics platform and be able to display the LLM interactions while exploring insights.
 
-            Enter your WordPress Configuration parameters and click on next. A MySQL (database) and a WordPress container will be created for you. The process will take about a minute for the process to finish.
+
+            Enter your PostHog-LLM Configuration parameters and click on next. The process will take a just a few minutes to finish.
         end: >
             Posthog-LLM is deployed and available as $$cap_appname-web . 
 
-            IMPORTANT: It will take up to 8-10 minutes for PostHog-LLM to be ready. Before that, you might see a 502 error page.
-    displayName: PostHog-LLM Services
+            IMPORTANT: It will take up to 5 minutes for PostHog-LLM to be ready. Before that, you might see a 502 error page.
+    displayName: PostHog-LLM
     isOfficial: false
-    description: Deploying PostHog-LLM
+    description: PostHog-LLM is a fork of PostHog with extensions to use PostHog as a LLM text analytics platform and be able to display the LLM interactions while exploring insights.
 
 volumes:
     zookeeper-data:

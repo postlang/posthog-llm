@@ -1,5 +1,9 @@
 name: Deploy Posthog LLM to Caprover
 
+# This workflow builds a Docker image from your code,
+# pushes it to Docker Hub, and then deploys it to CapRover
+# for different apps (Web, Plugin, Worker)
+
 on:
     push:
         branches: ['llm-main']
