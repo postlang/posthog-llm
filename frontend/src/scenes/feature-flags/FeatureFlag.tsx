@@ -1,6 +1,6 @@
 import './FeatureFlag.scss'
 
-import { IconCollapse, IconExpand, IconPlus, IconTrash } from '@posthog/icons'
+import { IconPlus, IconTrash } from '@posthog/icons'
 import { LemonDialog, LemonSegmentedButton, LemonSkeleton } from '@posthog/lemon-ui'
 import { useActions, useValues } from 'kea'
 import { Form, Group } from 'kea-forms'
@@ -119,8 +119,6 @@ export function FeatureFlag({ id }: { id?: string } = {}): JSX.Element {
 
     // whether the key for an existing flag is being changed
     const [hasKeyChanged, setHasKeyChanged] = useState(false)
-
-    const [advancedSettingsExpanded, setAdvancedSettingsExpanded] = useState(false)
 
     const isNewFeatureFlag = id === 'new' || id === undefined
 
@@ -410,55 +408,6 @@ export function FeatureFlag({ id }: { id?: string } = {}): JSX.Element {
                         <LemonDivider />
                         <FeatureFlagCodeExample featureFlag={featureFlag} />
                         <LemonDivider />
-                        {isNewFeatureFlag && (
-                            <>
-                                <div>
-                                    <LemonButton
-                                        fullWidth
-                                        onClick={() => setAdvancedSettingsExpanded(!advancedSettingsExpanded)}
-                                        sideIcon={advancedSettingsExpanded ? <IconCollapse /> : <IconExpand />}
-                                    >
-                                        <div>
-                                            <h3 className="l4 mt-2">Advanced settings</h3>
-                                            <div className="text-muted mb-2 font-medium">
-                                                Define who can modify this flag.
-                                            </div>
-                                        </div>
-                                    </LemonButton>
-                                </div>
-                                {advancedSettingsExpanded && (
-                                    <>
-                                        {featureFlags[FEATURE_FLAGS.AUTO_ROLLBACK_FEATURE_FLAGS] && (
-                                            <FeatureFlagAutoRollback />
-                                        )}
-                                        {featureFlags[FEATURE_FLAGS.ROLE_BASED_ACCESS] && (
-                                            <div className="border rounded bg-bg-light">
-                                                <h3 className="p-2 mb-0">Permissions</h3>
-                                                <LemonDivider className="my-0" />
-                                                <div className="p-3">
-                                                    <PayGateMini feature={AvailableFeature.ROLE_BASED_ACCESS}>
-                                                        <ResourcePermission
-                                                            resourceType={Resource.FEATURE_FLAGS}
-                                                            onChange={(roleIds) => setRolesToAdd(roleIds)}
-                                                            rolesToAdd={rolesToAdd}
-                                                            addableRoles={addableRoles}
-                                                            addableRolesLoading={unfilteredAddableRolesLoading}
-                                                            onAdd={() => addAssociatedRoles()}
-                                                            roles={derivedRoles}
-                                                            deleteAssociatedRole={(id) =>
-                                                                deleteAssociatedRole({ roleId: id })
-                                                            }
-                                                            canEdit={featureFlag.can_edit}
-                                                        />
-                                                    </PayGateMini>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                                <LemonDivider />
-                            </>
-                        )}
                         <div className="flex items-center gap-2 justify-end">
                             <LemonButton
                                 data-attr="cancel-feature-flag"

@@ -5,7 +5,6 @@ import { Members } from './organization/Members'
 import { OrganizationDangerZone } from './organization/OrganizationDangerZone'
 import { OrganizationDisplayName } from './organization/OrgDisplayName'
 import { OrganizationEmailPreferences } from './organization/OrgEmailPreferences'
-import { PermissionsGrid } from './organization/Permissions/PermissionsGrid'
 import { VerifiedDomains } from './organization/VerifiedDomains/VerifiedDomains'
 import { AutocaptureSettings, ExceptionAutocaptureSettings } from './project/AutocaptureSettings'
 import { CorrelationConfig } from './project/CorrelationConfig'
@@ -291,19 +290,6 @@ export const SettingsMap: SettingSection[] = [
                 id: 'authentication-domains',
                 title: 'Authentication Domains',
                 component: <VerifiedDomains />,
-            },
-        ],
-    },
-    {
-        level: 'organization',
-        id: 'organization-rbac',
-        title: 'Role-based access',
-        flag: 'ROLE_BASED_ACCESS',
-        settings: [
-            {
-                id: 'organization-rbac',
-                title: 'Role-based access',
-                component: <PermissionsGrid />,
             },
         ],
     },

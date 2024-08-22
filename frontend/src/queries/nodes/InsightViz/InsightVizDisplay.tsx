@@ -20,7 +20,6 @@ import { insightLogic } from 'scenes/insights/insightLogic'
 import { insightNavLogic } from 'scenes/insights/InsightNav/insightNavLogic'
 import { insightVizDataLogic } from 'scenes/insights/insightVizDataLogic'
 import { keyForInsightLogicProps } from 'scenes/insights/sharedUtils'
-import { FunnelCorrelation } from 'scenes/insights/views/Funnels/FunnelCorrelation'
 import { FunnelStepsTable } from 'scenes/insights/views/Funnels/FunnelStepsTable'
 import { InsightsTable } from 'scenes/insights/views/InsightsTable/InsightsTable'
 import { Paths } from 'scenes/paths/Paths'
@@ -37,7 +36,6 @@ import { InsightResultMetadata } from './InsightResultMetadata'
 export function InsightVizDisplay({
     disableHeader,
     disableTable,
-    disableCorrelationTable,
     disableLastComputation,
     disableLastComputationRefresh,
     showingResults,
@@ -265,7 +263,6 @@ export function InsightVizDisplay({
                 )}
             </div>
             {renderTable()}
-            {!disableCorrelationTable && activeView === InsightType.FUNNELS && <FunnelCorrelation />}
         </>
     )
 }
