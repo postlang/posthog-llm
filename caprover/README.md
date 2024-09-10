@@ -23,24 +23,24 @@ Wait 60 seconds and navigate to `http://localhost:3000` and change your root dom
 
 ## Deploy PostHog-LLM
 
-To deploy PostHog-LLM, we'll use a CapRover template file (`caprover-deploy.yml`) that simplifies the process. The template file will be used to deploy several services required by PostHog-LLM.
+To deploy PostHog-LLM, we'll use a CapRover template file (`caprover-deploy.yml`) that simplifies the process. The template file will be used to deploy several apps required by PostHog-LLM.
 
 Follow the steps below:
 
 * Go to `Apps` -> `One Click Apps`, navigate to the bottom of the page and click `>> TEMPLATE <<`.
 
-* Copy `caprover-deploy.yml` contents and paste it inside the textbox to set up the necessary services, configurations, and environment variables (similar to a docker compose file). 
+* Copy `caprover-deploy.yml` contents and paste it inside the textbox to set up the necessary apps, configurations, and environment variables (similar to a docker compose file). 
 
 
-Fill out the form: you'll need to define an app name. Define the name of your app (e.g 'hobby') and Hit deploy. CapRover, will start deploying all services.
+Fill out the form: you'll need to define an app name. Define the name of your app (e.g 'hobby') and Hit deploy. CapRover, will start deploying all apps.
 
 *Note: For faster deployment, nothing is built. All images are pulled from DockerHub. The images for `web`, `worker`, and `plugin` are from the `Dockerfile.caprover` file.*  🚀 
 
 After deployment, hit `finnish` and headover to the web service (Django) and navigate to `Deployment` page.
 
-You'll see migration's running for Postgres and Clickhouse database. While these migrations are running you're not able to connect PostHog. Wait a few minutes and you'll see in the logs `posthog started`. After all migrations are setup, `worker` and `plugin` services will also launch.
+You'll see migration's running for Postgres and Clickhouse database. While these migrations are running you're not able to connect PostHog. Wait a few minutes and you'll see in the logs `posthog started`. After all migrations are setup, `worker` and `plugin` apps will also launch.
 
-Navigate to the `web` service http link and PostHog Preflight page will show up. If you see 502 http error, most likely, PostHog is still initializing.
+Navigate to the `web` service http link and PostHog Preflight page will show up. If you see 502 http error, most likely, PostHog is still initializing. You can find a video on how to self-host PostHog-LLM [here](https://www.youtube.com/watch?v=acPLzzzcui8).
 
 Once you setup PostHog you can now upload some user-llms interactions. Check out our [repository](https://github.com/postlang/posthog-llm-examples) with examples on how to upload data to PostHog-LLM.
 
@@ -49,22 +49,22 @@ Once you setup PostHog you can now upload some user-llms interactions. Check out
 
 # CD (Development)
 
-The `.githhub\workflows\cd-deploy.yml` file provides a straightforward example of a continuous deployment workflow. This configuration automatically updates three services:
+The `.githhub\workflows\cd-deploy.yml` file provides a straightforward example of a continuous deployment workflow. It automatically three apps:
 
     Web
     Plugin Server
     Worker
 
-The workflow builds PostHog-LLM Docker image and pushes it to the DockerHub. Each service is then deployed to its respective CapRover app. The command executed for each service is defined by the `APP_COMMAND` environment variable, which is set in the Apps Config tab of the CapRover dashboard.
+The workflow builds PostHog-LLM Docker image and pushes it to the DockerHub. Each service is then deployed to its respective CapRover app.
 
 To use this workflow, the user must:
 
 * Specify the CapRover server URL in the format http://captain.your-domain.com.
-* Store the app names and their corresponding tokens as secrets. Check Deployment tab in your CapRover apps.
+* Store the app names and their corresponding tokens as secrets. Check Deployment tab in your CapRover apps for the web, plugin and worker apps.
 * Provide Docker credentials for logging into the container registry (username and token).
 
 ##  Services
-* Kafka: A distributed event streaming platform used to handle real-time data. A key component in PostHog event ingestion service. Events are written to the Kafka topics and then pulled by other services (Clickhouse, Plugin-server)
+* Kafka: A distributed event streaming platform used to handle real-time data. A key component in PostHog event ingestion service. Events are written to the Kafka topics and then pulled by other apps (Clickhouse, Plugin-server)
 
 * Zookeeper: A centralized service for maintaining configuration information, naming and for coordinating Kafka and ClickHouse clusters
 
