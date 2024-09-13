@@ -49,11 +49,78 @@ Once you setup PostHog you can now upload some user-llms interactions. Check out
 
 # CD (Development)
 
-The `.githhub\workflows\cd-deploy.yml` file provides a straightforward example of a continuous deployment workflow. It automatically three apps:
+The file below file provides a straightforward example of a continuous deployment workflow.
 
-    Web
-    Plugin Server
-    Worker
+```docker
+name: Deploy Posthog LLM to Caprover
+
+on:
+    push:
+        branches: ['llm-main']
+
+jobs:
+    build_and_deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  registry: docker.io
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Set IMAGE URL
+              id: set-vars
+              run: |
+                  echo "IMAGE_URL=andremoura/posthog-llm:${{ github.sha }}" >> $GITHUB_ENV
+                  echo "LATEST_TAG=andremoura/posthog-llm:latest" >> $GITHUB_ENV
+
+            - name: Build and push Docker Image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: true
+                  tags: |
+                      ${{ env.IMAGE_URL }}
+                      ${{ env.LATEST_TAG }}
+
+            - name: Deploy Web to CapRrover
+              uses: caprover/deploy-from-github@v1.1.2
+              with:
+                  server: '${{ secrets.CAPROVER_SERVER }}'
+                  app: '${{ secrets.WEB_APP }}'
+                  token: '${{ secrets.WEB_TOKEN }}'
+                  image: ${{ env.IMAGE_URL }}
+
+            - name: Deploy Plugin to CapRrover
+              uses: caprover/deploy-from-github@v1.1.2
+              with:
+                  server: '${{ secrets.CAPROVER_SERVER }}'
+                  app: '${{ secrets.PLUGIN_APP }}'
+                  token: '${{ secrets.PLUGIN_TOKEN }}'
+                  image: ${{ env.IMAGE_URL }}
+
+            - name: Deploy Worker to CapRrover
+              uses: caprover/deploy-from-github@v1.1.2
+              with:
+                  server: '${{ secrets.CAPROVER_SERVER }}'
+                  app: '${{ secrets.WORKER_APP }}'
+                  token: '${{ secrets.WORKER_TOKEN }}'
+                  image: ${{ env.IMAGE_URL }}
+```
+
+It automatically three apps:
+* Web
+* Plugin Server
+* Worker
 
 The workflow builds PostHog-LLM Docker image and pushes it to the DockerHub. Each service is then deployed to its respective CapRover app.
 

@@ -37,27 +37,3 @@ jobs:
                   tags: |
                       ${{ env.IMAGE_URL }}
                       ${{ env.LATEST_TAG }}
-
-            - name: Deploy Web to CapRrover
-              uses: caprover/deploy-from-github@v1.1.2
-              with:
-                  server: '${{ secrets.CAPROVER_SERVER }}'
-                  app: '${{ secrets.WEB_APP }}'
-                  token: '${{ secrets.WEB_TOKEN }}'
-                  image: ${{ env.IMAGE_URL }}
-
-            - name: Deploy Plugin to CapRrover
-              uses: caprover/deploy-from-github@v1.1.2
-              with:
-                  server: '${{ secrets.CAPROVER_SERVER }}'
-                  app: '${{ secrets.PLUGIN_APP }}'
-                  token: '${{ secrets.PLUGIN_TOKEN }}'
-                  image: ${{ env.IMAGE_URL }}
-
-            - name: Deploy Worker to CapRrover
-              uses: caprover/deploy-from-github@v1.1.2
-              with:
-                  server: '${{ secrets.CAPROVER_SERVER }}'
-                  app: '${{ secrets.WORKER_APP }}'
-                  token: '${{ secrets.WORKER_TOKEN }}'
-                  image: ${{ env.IMAGE_URL }}
