@@ -715,19 +715,6 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
             ev = json.loads(req_dict["events"])[0].get("name")
             req_dict["event"] = ev
 
-            if "date_from" in req_dict:
-                if req_dict["date_from"] == "all":
-                    # For insights that do not contain timeseries (piechart, number)
-                    # Insights with no timeseries add 'date_from = all' and no 'date_to' is sent
-                    # we set a date that grabs all events before "now"s
-                    assert "date_to" not in req_dict, "date_to found when 'date_from = all'."
-                    req_dict["before"] = datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f")
-                else:  # -180d, -7d, other timestamps
-                    req_dict["after"] = req_dict["date_from"]
-
-            if "date_to" in req_dict:
-                req_dict["before"] = req_dict["date_to"]
-
             req_dict["distinct_ids"] = distinct_ids
 
             query_result = query_events_list(
