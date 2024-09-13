@@ -1,8 +1,0 @@
-FROM clickhouse/clickhouse-server:23.11.2.11-alpine
-
-RUN mkdir -p /idl
-
-COPY  ./docker/clickhouse/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
-COPY ./posthog/idl /idl
-COPY ./docker/clickhouse/config.xml /etc/clickhouse-server/config.xml 
-COPY ./docker/clickhouse/users.xml /etc/clickhouse-server/users.xml 
