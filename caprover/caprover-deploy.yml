@@ -1,0 +1,191 @@
+captainVersion: 4
+services:
+    $$cap_appname-db:
+        image: postgres:12-alpine
+        environment:
+            POSTGRES_USER: $$cap_postgres_user
+            POSTGRES_DB: $$cap_postgres_db
+            POSTGRES_PASSWORD: $$cap_postgres_password
+        volumes:
+            - $$cap_appname-postgres-data:/var/lib/postgresql/data
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+
+    $$cap_appname-redis:
+        restart: on-failure
+        caproverExtra:
+            dockerfileLines:
+                - FROM redis:6.2.7-alpine
+                - CMD ["redis-server","--maxmemory-policy", "allkeys-lru", "--maxmemory", "200mb"]
+            notExposeAsWebApp: 'true'
+
+    $$cap_appname-zookeeper:
+        image: zookeeper:3.7.0
+        restart: on-failure
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+        volumes:
+            - $$cap_appname-zookeeper-datalog:/datalog
+            - $$cap_appname-zookeeper-data:/data
+            - $$cap_appname-zookeeper-logs:/logs
+
+    $$cap_appname-clickhouse:
+        restart: on-failure
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+            dockerfileLines:
+                - FROM alpine AS build
+                - RUN apk add --no-cache curl tar
+                - WORKDIR /
+                - RUN mkdir -p "docker"
+                - RUN curl -L https://github.com/PostHog/posthog/tarball/c25b571388a9ad05d529a14daee8f49819280496 | tar -xz --wildcards --strip-components=2 -C "./" '*/posthog/idl/*'
+                - RUN curl -L https://github.com/PostHog/posthog/tarball/c25b571388a9ad05d529a14daee8f49819280496 | tar -xz --wildcards --strip-components=2 -C "docker" '*/docker/*'
+                - RUN sed -i "s|<host>zookeeper</host>|<host>srv-captain--$$cap_appname-zookeeper</host>|" /docker/clickhouse/config.xml
+                - FROM clickhouse/clickhouse-server:23.11.2.11-alpine
+                - COPY --from=build /docker/clickhouse/config.xml /etc/clickhouse-server/config.xml
+                - COPY --from=build /docker/clickhouse/users.xml /etc/clickhouse-server/users.xml
+                - COPY --from=build /docker/clickhouse/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+                - COPY --from=build /idl /idl
+        depends_on:
+            - $$cap_appname-kafka
+            - $$cap_appname-zookeeper
+        volumes:
+            - $$cap_appname-clickhouse:/var/lib/clickhouse
+
+    $$cap_appname-kafka:
+        image: ghcr.io/posthog/kafka-container:v2.8.2
+        restart: on-failure
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+        environment:
+            KAFKA_BROKER_ID: 1001
+            KAFKA_CFG_RESERVED_BROKER_MAX_ID: 1001
+            KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+            KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://srv-captain--$$cap_appname-kafka:9092
+            KAFKA_CFG_ZOOKEEPER_CONNECT: srv-captain--$$cap_appname-zookeeper:2181
+            ALLOW_PLAINTEXT_LISTENER: 'true'
+        depends_on:
+            - $$cap_appname-zookeeper
+
+    $$cap_appname-worker:
+        command: ./bin/docker-worker-celery --with-scheduler
+        image: andremoura/posthog-llm:$$cap_posthog_version
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+        restart: on-failure
+        environment:
+            SITE_URL: http://$$cap_appname-web.$$cap_root_domain
+            SECRET_KEY: $$cap_secret_key
+            DATABASE_URL: postgres://$$cap_postgres_user:$$cap_postgres_password@srv-captain--$$cap_appname-db:$$cap_postgres_port/$$cap_postgres_db
+            REDIS_URL: redis://srv-captain--$$cap_appname-redis:6379/
+            CLICKHOUSE_HOST: srv-captain--$$cap_appname-clickhouse
+            KAFKA_HOSTS: srv-captain--$$cap_appname-kafka:9092
+            IS_BEHIND_PROXY: $$cap_behind_proxy
+            TRUST_ALL_PROXIES: $$cap_trust_all_proxies
+            CLICKHOUSE_SECURE: $$cap_clickhouse_secure
+            DISABLE_SECURE_SSL_REDIRECT: $$cap_disable_ssl_redirect
+
+    $$cap_appname-plugin:
+        image: andremoura/posthog-llm:$$cap_posthog_version
+        command: ./bin/plugin-server
+        depends_on:
+            - $$cap_appname-web
+        caproverExtra:
+            containerHttpPort: '8000'
+        environment:
+            SECRET_KEY: $$cap_secret_key
+            SITE_URL: http://$$cap_appname-web.$$cap_root_domain
+            DATABASE_URL: postgres://$$cap_postgres_user:$$cap_postgres_password@srv-captain--$$cap_appname-db:$$cap_postgres_port/$$cap_postgres_db
+            REDIS_URL: redis://srv-captain--$$cap_appname-redis:6379/
+            CLICKHOUSE_HOST: srv-captain--$$cap_appname-clickhouse
+            KAFKA_HOSTS: srv-captain--$$cap_appname-kafka:9092
+            CLICKHOUSE_SECURE: $$cap_clickhouse_secure
+
+    $$cap_appname-web:
+        image: andremoura/posthog-llm:$$cap_posthog_version
+        caproverExtra:
+            containerHttpPort: '8000'
+        restart: on-failure
+        command: sh -c "./bin/migrate && ./bin/docker-server"
+        depends_on:
+            - $$cap_appname-db
+            - $$cap_appname-redis
+            - $$cap_appname-clickhouse
+            - $$cap_appname-kafka
+        environment:
+            SITE_URL: http://$$cap_appname-web.$$cap_root_domain
+            SECRET_KEY: $$cap_secret_key
+            DATABASE_URL: postgres://$$cap_postgres_user:$$cap_postgres_password@srv-captain--$$cap_appname-db:$$cap_postgres_port/$$cap_postgres_db
+            REDIS_URL: redis://srv-captain--$$cap_appname-redis:6379/
+            CLICKHOUSE_HOST: srv-captain--$$cap_appname-clickhouse
+            KAFKA_HOSTS: srv-captain--$$cap_appname-kafka:9092
+            IS_BEHIND_PROXY: $$cap_behind_proxy
+            TRUST_ALL_PROXIES: $$cap_trust_all_proxies
+            CLICKHOUSE_SECURE: $$cap_clickhouse_secure
+            DISABLE_SECURE_SSL_REDIRECT: $$cap_disable_ssl_redirect
+
+caproverOneClickApp:
+    variables:
+        - id: $$cap_postgres_db
+          label: Postgres DB name
+          defaultValue: posthog
+
+        - id: $$cap_postgres_user
+          label: Postgres User
+          defaultValue: posthog
+
+        - id: $$cap_postgres_password
+          defaultValue: $$cap_gen_random_hex(12)
+          label: Postgres Password
+
+        - id: $$cap_postgres_port
+          defaultValue: 5432
+          label: Postgres Port
+          validRegex: /^\d+$/
+
+        - id: $$cap_secret_key
+          label: PostHog-LLM Secret Key
+          defaultValue: $$cap_gen_random_hex(23)
+          validRegex: /^([^\s^\/])+$/
+
+        - id: $$cap_posthog_version
+          label: PostHog's LLM version
+          defaultValue: latest
+
+        - id: $$cap_behind_proxy
+          label: Is PostHog running behind a proxy
+          defaultValue: 'true'
+          validRegex: /^(true|false)$/
+          description: 'Set to true if PostHog is running behind proxy (Caddy, nginx)'
+
+        - id: $$cap_trust_all_proxies
+          label: Trust all proxies
+          defaultValue: 'false'
+          validRegex: /^(true|false)$/
+          description: 'Determines if all proxies can be trusted.'
+
+        - id: $$cap_disable_ssl_redirect
+          label: Disable Secure SSL Redirect
+          defaultValue: 'true'
+          validRegex: /^(true|false)$/
+          description: Disables automatic redirect from port 80 (HTTP) to port 443 (HTTPS).
+
+        - id: $$cap_clickhouse_secure
+          label: Clickhouse secure
+          defaultValue: 'false'
+          validRegex: /^(true|false)$/
+          description: Whether to secure ClickHouse connection
+
+    instructions:
+        start: >-
+            PostHog-LLM is a fork of PostHog with extensions to use PostHog as a LLM text analytics platform and be able to display the LLM interactions while exploring insights.
+
+
+            Enter your PostHog-LLM Configuration parameters and click on next. The process will take a just a few minutes to finish.
+        end: >
+            Posthog-LLM is deployed and available as $$cap_appname-web . 
+
+            IMPORTANT: It will take up to 5 minutes for PostHog-LLM to be ready. Before that, you might see a 502 error page.
+    displayName: PostHog-LLM
+    isOfficial: false
+    description: PostHog-LLM is a fork of PostHog with extensions to use PostHog as a LLM text analytics platform and be able to display the LLM interactions while exploring insights.

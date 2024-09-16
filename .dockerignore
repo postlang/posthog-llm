@@ -3,6 +3,7 @@
 !requirements.txt
 !requirements-dev.txt
 !posthog
+!docker
 !plugin-server
 !staticfiles
 !manage.py

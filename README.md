@@ -27,11 +27,17 @@ interactions while exploring insights. Understand user behavior interacting with
 
 ### Self-hosted
 
-You can deploy a hobby instance in one line on Linux with Docker (recommended 4GB memory):
 
- ```bash 
+#### Deploy with CapRover
+
+Faster and easier deployments. Check out [caprover](./caprover/) folder to deploy in minutes! ⚡
+
+#### Hobby script
+You can deploy a hobby instance in one line on Linux with Docker (recommended 4GB memory) (**requires building the image**):
+
+```bash 
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/postlang/posthog-llm/HEAD/bin/deploy-hobby)"
- ``` 
+ ```
 
 
 ## Uploading data
