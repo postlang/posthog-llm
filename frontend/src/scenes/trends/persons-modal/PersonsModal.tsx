@@ -299,10 +299,10 @@ export function PersonsModal({
 }
 
 function getSessionId(event: Record<string, string>): string {
-    return event['$session_id'] ? event['$session_id'] : ``
+    return event['$session_id'] ? event['$session_id'] : `${event['id']}`
 }
 
-function processArrayInput(event: [], timestamp: any, output: string): ProcessedMessage {
+function processArrayInput(event: [], timestamp: any, output: string, hightlight: boolean): ProcessedMessage {
     // This function processes the array input when a session ID is present,
 
     const lastInput = event[event.length - 1]
@@ -326,6 +326,7 @@ function processArrayInput(event: [], timestamp: any, output: string): Processed
         output: output,
         timestamp: timestamp,
         history: processedHistory,
+        highlight: hightlight,
     }
 }
 
@@ -335,17 +336,20 @@ type ProcessedMessage = {
     timestamp: string
     history?: ProcessedMessage[]
     metadata?: Record<string, any>
+    highlight?: boolean
 }
 
 function processStringInput(event: Record<string, any>, allEvents: []): ProcessedMessage {
-    const msg = {
+    const msg: ProcessedMessage = {
         input: event['$llm_input'],
         timestamp: event['timestamp'],
         output: event['$llm_output'],
+        highlight: event['highlight'] ? true : false,
     }
 
     // add metadata to the message
-    const metadata = {}
+    const metadata: Record<string, any> = {}
+
     Object.keys(event).forEach((key) => {
         if (key.startsWith('user_') || key.startsWith('agent_')) {
             metadata[key] = event[key]
@@ -380,14 +384,19 @@ function addTaskToDialogues(
     }
     let task = null
     if (Array.isArray(event['$llm_input'])) {
-        task = processArrayInput(event['$llm_input'] as [], event['timestamp'], event['$llm_output'] as string)
+        task = processArrayInput(
+            event['$llm_input'] as [],
+            event['timestamp'],
+            event['$llm_output'] as string,
+            event['highlight'] as boolean
+        )
     } else if (typeof event['$llm_input'] === 'string') {
         task = processStringInput(event, llmEvents)
     }
     dialogues[sessionId].push(task)
 }
 
-function preProcessEvents(llmEvents: []): Record<string, unknown> {
+function preProcessEvents(llmEvents: []): Record<string, any> {
     /* Preprocess the events to segment them by session ID */
     const segmentedDialogues = {}
 
@@ -397,6 +406,24 @@ function preProcessEvents(llmEvents: []): Record<string, unknown> {
     })
 
     return segmentedDialogues
+}
+
+function adjustHighlightedEvents(grpConvs: Record<string, Array<any>>): void {
+    // If every conversation task matches a filter or just a single task, no need to highlight anything
+    for (const convKey in grpConvs) {
+        if (grpConvs.hasOwnProperty(convKey)) {
+            const events = grpConvs[convKey]
+
+            const allHighlightTrue = events.every((event) => event.highlight)
+
+            // If all events have highlight set to true, set highlight to false for all events
+            if (allHighlightTrue) {
+                events.forEach((event) => {
+                    event.highlight = false
+                })
+            }
+        }
+    }
 }
 
 interface ActorRowProps {
@@ -409,15 +436,15 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
     const [expanded, setExpanded] = useState(false)
 
     const { ['$llm-events']: convs, ...remaining_props } = actor.properties
-    let segmentedConvs = {}
+    let grpConvs = {}
+
     if (convs) {
         // @ts-expect-error
-        segmentedConvs = preProcessEvents(convs, actor.distinct_ids[0])
+        grpConvs = preProcessEvents(convs, actor.distinct_ids[0])
+        adjustHighlightedEvents(grpConvs)
     }
-
     const [tab, setTab] = useState('properties')
     const name = isGroupType(actor) ? groupDisplayId(actor.group_key, actor.properties) : asDisplay(actor)
-
     const onOpenRecordingClick = (): void => {
         if (!actor.matched_recordings) {
             return
@@ -557,10 +584,10 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                                         <div className="p-2 space-y-2 font-medium mt-1">
                                             <div className="flex justify-between items-center px-2">
                                                 <span>
-                                                    {pluralize(Object.keys(segmentedConvs).length, 'matched session')}
+                                                    {pluralize(Object.keys(grpConvs).length, 'matched session')}
                                                 </span>
                                             </div>
-                                            {Object.entries(segmentedConvs).map(([sessionId, conversation], index) => (
+                                            {Object.entries(grpConvs).map(([sessionId, conversation], index) => (
                                                 <ConvRow
                                                     key={index}
                                                     convId={`Session - ${sessionId}`}
@@ -571,10 +598,11 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
                                                             timestamp: string
                                                             history: []
                                                             metadata: Record<string, any>
+                                                            hightlight: boolean
                                                         }[]
                                                     }
-                                                    expand={Object.keys(segmentedConvs).length === 1}
-                                                    setBorder={index !== Object.keys(segmentedConvs).length - 1} // Don't set border for the last conversation
+                                                    expand={Object.keys(grpConvs).length === 1}
+                                                    setBorder={index !== Object.keys(grpConvs).length - 1} // Don't set border for the last conversation
                                                 />
                                             ))}
                                         </div>
@@ -602,7 +630,7 @@ export function ActorRow({ actor, onOpenRecording, propertiesTimelineFilter }: A
 
 interface ConvRowProps {
     convId: string
-    conversation: { input: string; output: string; timestamp: string; history: []; metadata: Record<string, any> }[]
+    conversation: ProcessedMessage[]
     expand: boolean
     setBorder?: boolean
 }
@@ -617,7 +645,6 @@ export function ConvRow({ convId, conversation, expand, setBorder }: ConvRowProp
     const handleRowClick = (): void => {
         setExpanded(!expanded)
     }
-
     return (
         <div className="pt">
             <div
@@ -653,6 +680,7 @@ export function ConvRow({ convId, conversation, expand, setBorder }: ConvRowProp
                                 history={task.history}
                                 isTask={true}
                                 metadata={task.metadata}
+                                highlight={task.highlight}
                             />
                         </div>
                     ))}
@@ -670,13 +698,23 @@ interface TaskProps {
     expandHistory?: boolean
     isTask?: boolean
     metadata?: Record<string, any>
+    highlight?: boolean
 }
 
-export function Task({ input, output, timestamp, history, expandHistory, isTask, metadata }: TaskProps): JSX.Element {
+export function Task({
+    input,
+    output,
+    timestamp,
+    history,
+    expandHistory,
+    isTask,
+    metadata,
+    highlight,
+}: TaskProps): JSX.Element {
     const user_class = 'user-avatar-div'
     const agent_class = 'agent-avatar-div'
-    const user_metadata = {}
-    const agent_metadata = {}
+    const user_metadata: Record<string, any> = {}
+    const agent_metadata: Record<string, any> = {}
 
     if (metadata) {
         Object.keys(metadata).forEach((key) => {
@@ -695,7 +733,7 @@ export function Task({ input, output, timestamp, history, expandHistory, isTask,
     }
 
     return (
-        <div className={isTask ? 'border' : ''}>
+        <div className={`${isTask ? 'border' : ''} ${highlight ? 'border-gold' : ''}`}>
             {timestamp && (
                 <div className={`flex justify-between pr-2 pl-2 ${expanded ? 'border-b' : ''}`}>
                     <span className="text-muted-alt">{new Date(timestamp).toLocaleString()}</span>
@@ -743,7 +781,7 @@ interface TaskRowProps {
     addPaddingBot?: boolean
 }
 export function TaskRow({ role, avatarClass, utterance, isTask, metadata, addPaddingBot }: TaskRowProps): JSX.Element {
-    const clean_metadata = {}
+    const clean_metadata: Record<string, any> = {}
     if (metadata) {
         Object.keys(metadata).forEach((key) => {
             if (metadata[key] !== 'OTHER') {
