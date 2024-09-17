@@ -69,7 +69,7 @@ services:
 
     $$cap_appname-worker:
         command: ./bin/docker-worker-celery --with-scheduler
-        image: andremoura/posthog-llm:$$cap_posthog_version
+        image: postlang/posthog-llm:$$cap_posthog_version
         caproverExtra:
             notExposeAsWebApp: 'true'
         restart: on-failure
@@ -86,7 +86,7 @@ services:
             DISABLE_SECURE_SSL_REDIRECT: $$cap_disable_ssl_redirect
 
     $$cap_appname-plugin:
-        image: andremoura/posthog-llm:$$cap_posthog_version
+        image: postlang/posthog-llm:$$cap_posthog_version
         command: ./bin/plugin-server
         depends_on:
             - $$cap_appname-web
@@ -102,7 +102,7 @@ services:
             CLICKHOUSE_SECURE: $$cap_clickhouse_secure
 
     $$cap_appname-web:
-        image: andremoura/posthog-llm:$$cap_posthog_version
+        image: postlang/posthog-llm:$$cap_posthog_version
         caproverExtra:
             containerHttpPort: '8000'
         restart: on-failure
