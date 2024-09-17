@@ -714,10 +714,7 @@ class PersonViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
             distinct_ids = [di for sa in serialized_actors for di in sa["distinct_ids"]]
             ev = json.loads(req_dict["events"])[0].get("name")
             req_dict["event"] = ev
-            if "date_from" in req_dict:
-                req_dict["after"] = req_dict["date_from"]
-            if "date_to" in req_dict:
-                req_dict["before"] = req_dict["date_to"]
+
             req_dict["distinct_ids"] = distinct_ids
 
             query_result = query_events_list(
